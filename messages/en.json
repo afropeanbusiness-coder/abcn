@@ -271,6 +271,18 @@
     "pillar": "PILLAR",
     "criteriaMet": "{checked} of {total} criteria met"
   },
+  "events": {
+    "majorSupportersKicker": "Major Financial Supporters",
+    "majorSupportersTitle1": "Our Major Financial",
+    "majorSupportersTitle2": "supporters & institutional partners.",
+    "majorSupportersLead": "FIALI is proudly backed and funded by Frankfurt's premier economic development and entrepreneurship institutions, actively empowering international female founders across Frankfurt am Main and the Rhein-Main region.",
+    "majorFinancialSupporterBadge": "Major Financial Supporter",
+    "strategicPartnerBadge": "Strategic & Community Partner",
+    "partnersKicker": "Ecosystem & Supporters",
+    "partnersTitle1": "Partners &",
+    "partnersTitle2": "ecosystem network.",
+    "partnersDesc": "FIALI is delivered in strategic collaboration with community champions, innovation networks and partners bridging Frankfurt with the international diaspora."
+  },
   "application": {
     "step1Label": "Profile",
     "step2Label": "Venture",

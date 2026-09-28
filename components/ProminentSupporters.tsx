@@ -71,7 +71,16 @@ export default function ProminentSupporters({
   className = "",
   showMarquee = true,
 }: ProminentSupportersProps) {
-  const te = useTranslations("events");
+  const te = useTranslations("event");
+
+  // Fallback safe resolver that never shows raw dot notation
+  const tStr = (key: string, enFallback: string, deFallback: string): string => {
+    try {
+      const val = te(key);
+      if (val && !val.includes(".")) return val;
+    } catch {}
+    return locale === "de" ? deFallback : enFallback;
+  };
 
   // Determine major financial supporters: either from prop or defaults
   const majorSupporters = React.useMemo(() => {
@@ -130,7 +139,7 @@ export default function ProminentSupporters({
               marginBottom: "12px",
             }}
           >
-            ★ {te("majorSupportersKicker")}
+            ★ {tStr("majorSupportersKicker", "Major Financial Supporters", "Hauptförderer")}
           </div>
           <h3
             style={{
@@ -142,7 +151,8 @@ export default function ProminentSupporters({
               fontFamily: "var(--font-serif, Georgia, serif)",
             }}
           >
-            {te("majorSupportersTitle1")} <em>{te("majorSupportersTitle2")}</em>
+            {tStr("majorSupportersTitle1", "Our Major Financial", "Unsere Hauptförderer &")}{" "}
+            <em>{tStr("majorSupportersTitle2", "supporters & institutional partners.", "Finanzielle Unterstützer.")}</em>
           </h3>
           <p
             style={{
@@ -152,7 +162,11 @@ export default function ProminentSupporters({
               margin: 0,
             }}
           >
-            {te("majorSupportersLead")}
+            {tStr(
+              "majorSupportersLead",
+              "FIALI is proudly backed and funded by Frankfurt's premier economic development and entrepreneurship institutions, actively empowering international female founders across Frankfurt am Main and the Rhein-Main region.",
+              "FIALI wird maßgeblich durch führende Frankfurter Wirtschaftsförderungs- und Gründungsinstitutionen gefördert, um internationalen Gründerinnen in Frankfurt am Main und der Region Rhein-Main Flügel zu verleihen."
+            )}
           </p>
         </div>
 
@@ -200,7 +214,7 @@ export default function ProminentSupporters({
                     marginBottom: "16px",
                   }}
                 >
-                  {te("majorFinancialSupporterBadge")}
+                  {tStr("majorFinancialSupporterBadge", "Major Financial Supporter", "Hauptförderer")}
                 </span>
 
                 {/* Logo with Original Authentic Colors */}
@@ -269,7 +283,7 @@ export default function ProminentSupporters({
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}
-                  title={`${partner.name} (${te("majorFinancialSupporterBadge")})`}
+                  title={`${partner.name} (${tStr("majorFinancialSupporterBadge", "Major Financial Supporter", "Hauptförderer")})`}
                 >
                   {cardContent}
                 </a>
@@ -308,7 +322,7 @@ export default function ProminentSupporters({
                 color: "rgba(19, 37, 58, 0.65)",
               }}
             >
-              {te("strategicPartnerBadge")}
+              {tStr("strategicPartnerBadge", "Strategic & Community Partner", "Netzwerk- & Kooperationspartner")}
             </span>
             <span
               style={{
@@ -329,7 +343,7 @@ export default function ProminentSupporters({
             logos={allPartnersCombined}
             theme="light"
             speed="normal"
-            label={te("partnersKicker")}
+            label={tStr("partnersKicker", "Ecosystem & Supporters", "Ökosystem & Unterstützer")}
             tagline="Frankfurt 2026"
           />
         </div>

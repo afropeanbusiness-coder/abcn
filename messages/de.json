@@ -271,6 +271,18 @@
     "pillar": "SÄULE",
     "criteriaMet": "{checked} von {total} Kriterien erfüllt"
   },
+  "events": {
+    "majorSupportersKicker": "Hauptförderer",
+    "majorSupportersTitle1": "Unsere Hauptförderer &",
+    "majorSupportersTitle2": "Finanzielle Unterstützer.",
+    "majorSupportersLead": "FIALI wird maßgeblich durch führende Frankfurter Wirtschaftsförderungs- und Gründungsinstitutionen gefördert, um internationalen Gründerinnen in Frankfurt am Main und der Region Rhein-Main Flügel zu verleihen.",
+    "majorFinancialSupporterBadge": "Hauptförderer",
+    "strategicPartnerBadge": "Netzwerk- & Kooperationspartner",
+    "partnersKicker": "Ökosystem & Unterstützer",
+    "partnersTitle1": "Partner &",
+    "partnersTitle2": "Ökosystem-Netzwerk.",
+    "partnersDesc": "FIALI wird in strategischer Zusammenarbeit mit Community-Partnern, Innovationsnetzwerken und Förderern realisiert, die Frankfurt mit der internationalen Diaspora verbinden."
+  },
   "application": {
     "step1Label": "Profil",
     "step2Label": "Unternehmen",

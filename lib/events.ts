@@ -9,6 +9,8 @@ export type EventPartner = {
   name: string;
   logo?: string;
   website?: string;
+  tier?: "financial_supporter" | "ecosystem_partner" | string;
+  tagline?: string;
 };
 
 export type EventGrant = {
@@ -167,12 +169,52 @@ export const FIALI_FALLBACK: EventRecord = {
     "Growth potential within Frankfurt",
   ],
   partners: [
-    { name: "ABCN (Afropean Business & Culture Network)", logo: "/assets/fiali/logos/abcn.png" },
-    { name: "DIVOC Rising", logo: "/assets/fiali/logos/divoc-rising.png" },
-    { name: "Kompass Frankfurt", logo: "/assets/fiali/logos/kompass-frankfurt.png" },
-    { name: "Black Women in Tech DACH", logo: "/assets/fiali/logos/black-women-in-tech-dach.png" },
-    { name: "EquiNet", logo: "/assets/fiali/logos/equinet.png" },
-    { name: "Flourish & Prosper", logo: "/assets/fiali/logos/flourish-prosper.png" },
+    {
+      name: "Wirtschaftsförderung Frankfurt",
+      logo: "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png",
+      website: "https://frankfurt-business.net",
+      tier: "financial_supporter",
+      tagline: "Wirtschaftsförderung der Stadt Frankfurt am Main",
+    },
+    {
+      name: "Kompass Frankfurt",
+      logo: "/assets/fiali/logos/kompass-frankfurt.png",
+      website: "https://kompassfrankfurt.de",
+      tier: "financial_supporter",
+      tagline: "Zentrum für Existenzgründungen Frankfurt",
+    },
+    {
+      name: "Frankfurt Forward",
+      logo: "/assets/fiali/logos/frankfurt-forward.png",
+      website: "https://frankfurt-forward.de",
+      tier: "financial_supporter",
+      tagline: "Das Startup-Matchmaking-Projekt der Stadt Frankfurt",
+    },
+    {
+      name: "DIWOC Rising",
+      logo: "/assets/fiali/logos/divoc-rising.png",
+      website: "https://diwoc-rising.com",
+      tier: "financial_supporter",
+      tagline: "Diversity in Women of Color Initiative",
+    },
+    {
+      name: "Black Women in Tech DACH",
+      logo: "/assets/fiali/logos/black-women-in-tech-dach.png",
+      website: "https://bwit-dach.org",
+      tier: "ecosystem_partner",
+    },
+    {
+      name: "Flourish & Prosper",
+      logo: "/assets/fiali/logos/flourish-prosper.png",
+      website: "https://flourishandprosper.org",
+      tier: "ecosystem_partner",
+    },
+    {
+      name: "ABCN (Afropean Business & Culture Network)",
+      logo: "/assets/fiali/logos/abcn.png",
+      website: "https://afropeanbusiness.com",
+      tier: "ecosystem_partner",
+    },
   ],
   grants: {
     count: 2,

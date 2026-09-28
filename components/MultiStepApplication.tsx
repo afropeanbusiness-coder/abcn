@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { neon } from "@/lib/neon";
 import { getPathname, type Locale } from "@/i18n/routing";
 
 type Props = {
@@ -17,6 +16,7 @@ interface FormData {
   firstName: string;
   lastName: string;
   jobTitle: string;
+  location: string;
   country: string;
   email: string;
   phone: string;
@@ -34,13 +34,14 @@ const initialData: FormData = {
   firstName: "",
   lastName: "",
   jobTitle: "",
+  location: "Frankfurt am Main",
   country: "DE",
   email: "",
   phone: "",
   companyName: "",
   companyUrl: "",
-  sector: "AI & Digital Tech",
-  stage: "Early Revenue / Seed",
+  sector: "Technology & Software (IT, SaaS, Digital)",
+  stage: "Idea stage (not founded yet)",
   motivation: "",
   aiFocus: "",
   grantInterest: "Yes, interested in the grant",
@@ -120,41 +121,37 @@ export default function MultiStepApplication({
     setIsSubmitting(true);
 
     try {
-      let id = eventId;
-      if (!id) {
-        const { data, error: eventError } = await neon
-          .from("events")
-          .select("id")
-          .eq("slug", eventSlug)
-          .eq("status", "published")
-          .limit(1);
-        if (eventError || !data?.[0]?.id) {
-          throw new Error(t("errSubmit"));
-        }
-        id = String(data[0].id);
-      }
-
-      const { error: insertError } = await neon.from("event_applications").insert({
-        event_id: id,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        role_title: formData.jobTitle,
-        email: formData.email,
-        phone: formData.phone,
-        city: "",
-        country: formData.country,
-        company_name: formData.companyName,
-        company_website: formData.companyUrl,
-        business_model: formData.sector,
-        venture_stage: formData.stage,
-        ai_interest: formData.aiFocus,
-        motivation: formData.motivation,
-        goals: formData.grantInterest,
-        referral_source: "",
-        consent: formData.consent,
-        status: "submitted",
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          eventId,
+          eventSlug,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          jobTitle: formData.jobTitle,
+          email: formData.email,
+          phone: formData.phone,
+          location: formData.location,
+          country: formData.country || "DE",
+          companyName: formData.companyName,
+          companyUrl: formData.companyUrl,
+          sector: formData.sector,
+          stage: formData.stage,
+          aiFocus: formData.aiFocus,
+          motivation: formData.motivation,
+          grantInterest: formData.grantInterest,
+          referralSource: "",
+          consent: formData.consent,
+        }),
       });
-      if (insertError) throw insertError;
+
+      const json = await res.json();
+      if (!res.ok || json?.error) {
+        throw new Error(json?.error || t("errSubmit"));
+      }
 
       setIsSubmitted(true);
     } catch (err: any) {
@@ -324,21 +321,17 @@ export default function MultiStepApplication({
 
                 <div className="wizard-field">
                   <label>
-                    {t("country")} <span className="req">*</span>
+                    {t("location")} <span className="req">*</span>
                   </label>
                   <select
-                    value={formData.country}
-                    onChange={(e) => updateField("country", e.target.value)}
+                    value={formData.location}
+                    onChange={(e) => {
+                      updateField("location", e.target.value);
+                      updateField("country", "DE");
+                    }}
                   >
-                    <option value="DE">{t("countryDe")}</option>
-                    <option value="FR">{t("countryFr")}</option>
-                    <option value="UK">{t("countryUk")}</option>
-                    <option value="BE">{t("countryBe")}</option>
-                    <option value="CH">{t("countryCh")}</option>
-                    <option value="CM">{t("countryCm")}</option>
-                    <option value="NG">{t("countryNg")}</option>
-                    <option value="RW">{t("countryRw")}</option>
-                    <option value="OTHER">{t("countryOther")}</option>
+                    <option value="Frankfurt am Main">{t("locationFrankfurt")}</option>
+                    <option value="Rhein-Main Region">{t("locationRheinMain")}</option>
                   </select>
                 </div>
 
@@ -412,12 +405,17 @@ export default function MultiStepApplication({
                     value={formData.sector}
                     onChange={(e) => updateField("sector", e.target.value)}
                   >
-                    <option value="AI & Digital Tech">{t("sectorAi")}</option>
-                    <option value="Creative & Cultural Economy">{t("sectorCreative")}</option>
-                    <option value="FinTech & Cross-Border Trade">{t("sectorFintech")}</option>
-                    <option value="HealthTech & BioTech">{t("sectorHealth")}</option>
-                    <option value="EdTech & Future of Work">{t("sectorEdtech")}</option>
-                    <option value="AgriTech & Sustainability">{t("sectorAgri")}</option>
+                    <option value="Technology & Software (IT, SaaS, Digital)">{t("sectorTech")}</option>
+                    <option value="Consulting & Professional Services">{t("sectorServices")}</option>
+                    <option value="Retail, E-Commerce & Consumer Goods">{t("sectorCommerce")}</option>
+                    <option value="Creative Industries, Media & Design">{t("sectorCreative")}</option>
+                    <option value="Health, Care & Life Sciences">{t("sectorHealth")}</option>
+                    <option value="Finance, Insurance & FinTech">{t("sectorFintech")}</option>
+                    <option value="Food, Gastronomy & Hospitality">{t("sectorFood")}</option>
+                    <option value="Education, Coaching & HR">{t("sectorEdtech")}</option>
+                    <option value="Sustainability, Climate & GreenTech">{t("sectorSustainability")}</option>
+                    <option value="Social Impact & Community Venture">{t("sectorSocial")}</option>
+                    <option value="Other / Cross-Sector Industry">{t("sectorOther")}</option>
                   </select>
                 </div>
 
@@ -429,10 +427,12 @@ export default function MultiStepApplication({
                     value={formData.stage}
                     onChange={(e) => updateField("stage", e.target.value)}
                   >
-                    <option value="Pre-seed / MVP">{t("stagePreSeed")}</option>
-                    <option value="Early Revenue / Seed">{t("stageEarlyRev")}</option>
-                    <option value="Growth / Series A Ready">{t("stageGrowth")}</option>
-                    <option value="Bootstrapped & Profitable">{t("stageProfitable")}</option>
+                    <option value="Idea stage (not founded yet)">{t("stageIdea")}</option>
+                    <option value="In incorporation / Preparing launch">{t("stageIncorporation")}</option>
+                    <option value="Founded already (Building prototype / MVP)">{t("stageMvp")}</option>
+                    <option value="Already in business (Early customers / revenue)">{t("stageEarlyRev")}</option>
+                    <option value="Established business (Scaling & growth phase)">{t("stageGrowth")}</option>
+                    <option value="Bootstrapped & profitable">{t("stageProfitable")}</option>
                   </select>
                 </div>
               </div>
@@ -521,7 +521,7 @@ export default function MultiStepApplication({
                   <div className="wizard-review-item">
                     <span>{t("stageCountry")}</span>
                     <strong>{formData.stage}</strong>
-                    <em>{t("countryLabel")}: {formData.country}</em>
+                    <em>{formData.location || "Frankfurt am Main"}</em>
                   </div>
                 </div>
 

@@ -6,12 +6,45 @@ import { EventPartner } from "@/lib/events";
 import styles from "./LogoMarquee.module.css";
 
 export const DEFAULT_FIALI_PARTNERS: EventPartner[] = [
-  { name: "ABCN", logo: "/assets/fiali/logos/abcn.png" },
-  { name: "DIVOC Rising", logo: "/assets/fiali/logos/divoc-rising.png" },
-  { name: "Kompass Frankfurt", logo: "/assets/fiali/logos/kompass-frankfurt.png" },
-  { name: "Black Women in Tech DACH", logo: "/assets/fiali/logos/black-women-in-tech-dach.png" },
-  { name: "EquiNet", logo: "/assets/fiali/logos/equinet.png" },
-  { name: "Flourish & Prosper", logo: "/assets/fiali/logos/flourish-prosper.png" },
+  {
+    name: "Wirtschaftsförderung Frankfurt",
+    logo: "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png",
+    website: "https://frankfurt-business.net",
+    tier: "financial_supporter",
+  },
+  {
+    name: "Kompass Frankfurt",
+    logo: "/assets/fiali/logos/kompass-frankfurt.png",
+    website: "https://kompassfrankfurt.de",
+    tier: "financial_supporter",
+  },
+  {
+    name: "Frankfurt Forward",
+    logo: "/assets/fiali/logos/frankfurt-forward.png",
+    website: "https://frankfurt-forward.de",
+    tier: "financial_supporter",
+  },
+  {
+    name: "DIWOC Rising",
+    logo: "/assets/fiali/logos/divoc-rising.png",
+    website: "https://diwoc-rising.com",
+    tier: "financial_supporter",
+  },
+  {
+    name: "Black Women in Tech DACH",
+    logo: "/assets/fiali/logos/black-women-in-tech-dach.png",
+    website: "https://bwit-dach.org",
+  },
+  {
+    name: "Flourish & Prosper",
+    logo: "/assets/fiali/logos/flourish-prosper.png",
+    website: "https://flourishandprosper.org",
+  },
+  {
+    name: "ABCN",
+    logo: "/assets/fiali/logos/abcn.png",
+    website: "https://afropeanbusiness.com",
+  },
 ];
 
 interface LogoMarqueeProps {

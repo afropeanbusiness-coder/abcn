@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import MultiStepApplication from "@/components/MultiStepApplication";
 import NavExtras from "@/components/NavExtras";
 import LogoMarquee from "@/components/LogoMarquee";
+import ProminentSupporters, { MAJOR_FINANCIAL_SUPPORTERS } from "@/components/ProminentSupporters";
 import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import Img from "@/components/Img";
@@ -198,6 +199,85 @@ export default function EventDetailPage() {
                 {event.grants?.amount_each ? `${event.grants.count || 2}x ${event.grants.amount_each}` : "90 days"}
               </strong>
               <span>{event.grants?.amount_each ? (locale === "de" ? "Zuschüsse" : "Grants") : te("statRoadmap")}</span>
+            </div>
+          </div>
+
+          {/* Prominent Supporters Strip in Hero */}
+          <div style={{
+            marginTop: "24px",
+            padding: "16px 20px",
+            background: "rgba(255, 255, 255, 0.92)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(19, 37, 58, 0.12)",
+            borderRadius: "14px",
+            boxShadow: "0 6px 20px rgba(0, 0, 0, 0.04)"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "10px",
+              flexWrap: "wrap",
+              gap: "8px"
+            }}>
+              <span style={{
+                fontSize: "0.68rem",
+                fontWeight: 800,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "#a45e00",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px"
+              }}>
+                ★ {te("majorSupportersKicker")}
+              </span>
+              <a href="#partners" style={{ fontSize: "0.72rem", color: "#006655", textDecoration: "none", fontWeight: 700 }}>
+                {locale === "de" ? "Alle Partner anzeigen ↓" : "View all partners ↓"}
+              </a>
+            </div>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap"
+            }}>
+              {(event.partners && event.partners.length >= 4 ? event.partners.slice(0, 4) : MAJOR_FINANCIAL_SUPPORTERS).map((s, idx) => (
+                <a
+                  key={s.name + idx}
+                  href={s.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${s.name} (${te("majorFinancialSupporterBadge")})`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "4px 8px",
+                    background: "#ffffff",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(0, 0, 0, 0.08)",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+                    transition: "transform 0.2s ease",
+                  }}
+                >
+                  {s.logo ? (
+                    <img
+                      src={s.logo}
+                      alt={s.name}
+                      style={{
+                        height: "26px",
+                        width: "auto",
+                        maxWidth: "110px",
+                        objectFit: "contain",
+                        display: "block",
+                        filter: "none !important"
+                      }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#13253a" }}>{s.name}</span>
+                  )}
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -407,26 +487,11 @@ export default function EventDetailPage() {
       {/* Partner Ecosystem & Supporters Section */}
       {event.partners && event.partners.length > 0 && (
         <section id="partners" className="partners-section">
-          <div className="partners-heading">
-            <span className="benchmark-kicker">{te("partnersKicker")}</span>
-            <h2>
-              {te("partnersTitle1")}<br />
-              <em>{te("partnersTitle2")}</em>
-            </h2>
-            <p className="partners-lead">
-              {te("partnersDesc")}
-            </p>
-          </div>
-
-          <div className="partner-scroller-wrap" style={{ marginTop: "28px" }}>
-            <LogoMarquee
-              logos={event.partners}
-              theme="light"
-              speed="normal"
-              label={event.eyebrow || "Partner Ecosystem & Collaborators"}
-              tagline={event.venue || event.city || "Frankfurt 2026"}
-            />
-          </div>
+          <ProminentSupporters
+            partners={event.partners}
+            locale={locale}
+            showMarquee={true}
+          />
         </section>
       )}
 

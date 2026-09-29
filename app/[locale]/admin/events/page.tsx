@@ -1040,6 +1040,56 @@ export default function EventsAdminPage() {
     });
   }, [applications, pipelineStatusFilter, pipelineSearch]);
 
+  // Active applicants list for modal/fullscreen navigation
+  const activeApplicantList = useMemo(() => {
+    if (mainTab === "pipeline") return filteredPipeline;
+    if (editorTab === "applicants" && applications.length > 0) return filteredEventApplications;
+    return allApplications;
+  }, [mainTab, filteredPipeline, editorTab, applications, filteredEventApplications, allApplications]);
+
+  const currentApplicantIndex = useMemo(() => {
+    if (!selectedApplicant) return -1;
+    return activeApplicantList.findIndex((a) => a.id === selectedApplicant.id);
+  }, [selectedApplicant, activeApplicantList]);
+
+  // Keyboard shortcut listener for full-screen response dossier (Esc to close, Arrow keys to navigate)
+  useEffect(() => {
+    if (!selectedApplicant) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSelectedApplicant(null);
+        return;
+      }
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === "textarea" || tag === "input" || tag === "select") return;
+
+      if (e.key === "ArrowLeft") {
+        if (currentApplicantIndex > 0) {
+          setSelectedApplicant(activeApplicantList[currentApplicantIndex - 1]);
+        }
+      } else if (e.key === "ArrowRight") {
+        if (currentApplicantIndex >= 0 && currentApplicantIndex < activeApplicantList.length - 1) {
+          setSelectedApplicant(activeApplicantList[currentApplicantIndex + 1]);
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedApplicant, currentApplicantIndex, activeApplicantList]);
+
+  function copyTextToClipboard(text: string, label: string) {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    showToast(`${label} copied to clipboard!`);
+  }
+
+  function appendAdminNote(noteTag: string) {
+    if (!selectedApplicant) return;
+    const currentNotes = selectedApplicant.admin_notes || "";
+    const updatedNotes = currentNotes ? `${currentNotes}\n• ${noteTag}` : `• ${noteTag}`;
+    updateApplicationStatus(selectedApplicant.id, selectedApplicant.status, updatedNotes);
+  }
+
   // Metric KPIs
   const totalEventsCount = events.length;
   const publishedEventsCount = events.filter((e) => e.status === "published").length;
@@ -3098,167 +3148,536 @@ export default function EventsAdminPage() {
           </div>
         )}
 
-        {/* ---------------- Candidate Details Drawer / Modal ---------------- */}
+        {/* ---------------- Full-Screen Candidate Form Response Dossier ---------------- */}
         {selectedApplicant && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(6px)",
-              zIndex: 100,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1rem",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                maxWidth: "680px",
-                maxHeight: "90vh",
-                overflowY: "auto",
-                background: "var(--cms-surface)",
-                border: "1px solid var(--cms-border)",
-                borderRadius: "var(--cms-radius-lg)",
-                padding: "2rem",
-                boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  marginBottom: "1.5rem",
-                  borderBottom: "1px solid var(--cms-border)",
-                  paddingBottom: "1rem",
-                }}
-              >
-                <div>
-                  <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: 800 }}>
-                    {selectedApplicant.first_name} {selectedApplicant.last_name}
-                  </h3>
-                  <span style={{ fontSize: "0.85rem", color: "var(--cms-text-secondary)" }}>
-                    {selectedApplicant.role_title || "Founder"} · {selectedApplicant.company_name}
-                  </span>
-                </div>
+          <div className="cms-applicant-fullscreen" role="dialog" aria-modal="true">
+            {/* Top Header Bar */}
+            <header className="cms-fullscreen-header">
+              <div className="cms-fullscreen-header-left">
                 <button
+                  type="button"
                   onClick={() => setSelectedApplicant(null)}
-                  className="cms-icon-btn"
-                  style={{ width: "36px", height: "36px" }}
+                  className="cms-fullscreen-back-btn"
+                  title="Close and return to list (Esc)"
+                >
+                  <span>←</span>
+                  <span>Back to Responses</span>
+                  <kbd style={{ opacity: 0.6, fontSize: "0.7rem", padding: "1px 4px", border: "1px solid var(--cms-border)", borderRadius: "3px" }}>Esc</kbd>
+                </button>
+
+                <div className="cms-fullscreen-divider" />
+
+                <div className="cms-fullscreen-title-group">
+                  <div className="cms-fullscreen-avatar">
+                    {selectedApplicant.first_name?.[0] || ""}{selectedApplicant.last_name?.[0] || "A"}
+                  </div>
+                  <div className="cms-fullscreen-heading-text">
+                    <h2 className="cms-fullscreen-heading-title">
+                      {selectedApplicant.first_name} {selectedApplicant.last_name}
+                      {selectedApplicant.company_name && (
+                        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--cms-accent)" }}>
+                          ({selectedApplicant.company_name})
+                        </span>
+                      )}
+                    </h2>
+                    <div className="cms-fullscreen-heading-sub">
+                      <span>{selectedApplicant.role_title || "Founder"}</span>
+                      {selectedApplicant.city && (
+                        <>
+                          <span>•</span>
+                          <span>📍 {selectedApplicant.city}{selectedApplicant.country ? `, ${selectedApplicant.country}` : ""}</span>
+                        </>
+                      )}
+                      {selectedApplicant.event_title && (
+                        <>
+                          <span>•</span>
+                          <span style={{ color: "var(--cms-gold)", fontWeight: 600 }}>🏷 {selectedApplicant.event_title}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Navigation Controls */}
+              <div className="cms-fullscreen-nav-controls">
+                <button
+                  type="button"
+                  disabled={currentApplicantIndex <= 0}
+                  onClick={() => {
+                    if (currentApplicantIndex > 0) {
+                      setSelectedApplicant(activeApplicantList[currentApplicantIndex - 1]);
+                    }
+                  }}
+                  className="cms-fullscreen-nav-btn"
+                  title="Previous response (Left Arrow)"
+                >
+                  ◀ Prev
+                </button>
+                <span className="cms-fullscreen-nav-counter">
+                  {currentApplicantIndex >= 0 ? `${currentApplicantIndex + 1} of ${activeApplicantList.length}` : `${activeApplicantList.length} total`}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentApplicantIndex < 0 || currentApplicantIndex >= activeApplicantList.length - 1}
+                  onClick={() => {
+                    if (currentApplicantIndex >= 0 && currentApplicantIndex < activeApplicantList.length - 1) {
+                      setSelectedApplicant(activeApplicantList[currentApplicantIndex + 1]);
+                    }
+                  }}
+                  className="cms-fullscreen-nav-btn"
+                  title="Next response (Right Arrow)"
+                >
+                  Next ▶
+                </button>
+              </div>
+
+              {/* Right Side Actions */}
+              <div className="cms-fullscreen-header-right">
+                <div className="cms-fullscreen-status-wrap">
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--cms-text-muted)" }}>Status:</span>
+                  <select
+                    className="cms-fullscreen-status-select"
+                    data-status={selectedApplicant.status}
+                    value={selectedApplicant.status}
+                    onChange={(e) => updateApplicationStatus(selectedApplicant.id, e.target.value)}
+                  >
+                    <option value="submitted">📥 Submitted</option>
+                    <option value="reviewing">🔍 In Review</option>
+                    <option value="shortlisted">⭐ Shortlisted</option>
+                    <option value="accepted">✓ Accepted</option>
+                    <option value="declined">✕ Declined</option>
+                  </select>
+                </div>
+
+                <a
+                  href={`mailto:${selectedApplicant.email}?subject=${encodeURIComponent(`ABCN Executive Update: ${selectedApplicant.first_name} ${selectedApplicant.last_name}`)}`}
+                  className="cms-fullscreen-action-btn"
+                  title="Send email to founder"
+                >
+                  ✉ Email
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="cms-fullscreen-action-btn"
+                  title="Print / Save PDF Dossier"
+                >
+                  🖨 Print Dossier
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => deleteApplication(selectedApplicant.id)}
+                  className="cms-fullscreen-action-btn"
+                  style={{ color: "var(--cms-danger)" }}
+                  title="Delete Application"
+                >
+                  🗑 Delete
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedApplicant(null)}
+                  className="cms-fullscreen-close-btn"
+                  title="Close (Esc)"
                 >
                   ✕
                 </button>
               </div>
+            </header>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-                <div>
-                  <span className="cms-hint">Email</span>
-                  <div style={{ fontWeight: 600 }}>
-                    <a
-                      href={`mailto:${selectedApplicant.email}`}
-                      style={{ color: "var(--cms-accent)", textDecoration: "none" }}
-                    >
-                      {selectedApplicant.email} ✉
-                    </a>
+            {/* Scrollable Dossier Body */}
+            <div className="cms-fullscreen-scroll">
+              <div className="cms-fullscreen-inner">
+                {/* Main Left Column: Primary Question Responses */}
+                <div className="cms-response-main">
+                  {/* Quick Metrics Strip */}
+                  <div className="cms-dossier-metrics-grid">
+                    <div className="cms-dossier-metric-item">
+                      <span className="cms-dossier-metric-label">Submitted On</span>
+                      <span className="cms-dossier-metric-value">
+                        {selectedApplicant.submitted_at
+                          ? new Date(selectedApplicant.submitted_at).toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Unknown"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-metric-item">
+                      <span className="cms-dossier-metric-label">Venture Stage</span>
+                      <span className="cms-dossier-metric-value" style={{ color: "var(--cms-gold)" }}>
+                        {selectedApplicant.venture_stage || "Not specified"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-metric-item">
+                      <span className="cms-dossier-metric-label">Industry / Focus</span>
+                      <span className="cms-dossier-metric-value" style={{ color: "var(--cms-accent)" }}>
+                        {selectedApplicant.business_model || "General"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-metric-item">
+                      <span className="cms-dossier-metric-label">Grant Interest</span>
+                      <span className="cms-dossier-metric-value">
+                        {selectedApplicant.goals || "Standard"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 1. Founder Motivation */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-card-head">
+                      <h3 className="cms-dossier-card-title">
+                        <span>🎯</span> Founder Motivation & Vision
+                      </h3>
+                      <span className="cms-dossier-badge">Key Essay Response</span>
+                    </div>
+                    {selectedApplicant.motivation ? (
+                      <div className="cms-dossier-prose">
+                        {selectedApplicant.motivation}
+                      </div>
+                    ) : (
+                      <p style={{ color: "var(--cms-text-muted)", fontStyle: "italic", margin: 0 }}>
+                        No motivation statement was submitted with this application.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 2. Business Model, Innovation & Goals */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-card-head">
+                      <h3 className="cms-dossier-card-title">
+                        <span>💡</span> Venture Architecture & Objectives
+                      </h3>
+                      <span className="cms-dossier-badge">Commercial Profile</span>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1rem" }}>
+                      <div>
+                        <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
+                          Business Model / Sector
+                        </span>
+                        <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                          {selectedApplicant.business_model || "Not specified"}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
+                          Venture Stage
+                        </span>
+                        <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
+                          {selectedApplicant.venture_stage || "Not specified"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedApplicant.goals && (
+                      <div style={{ marginTop: "1rem" }}>
+                        <span className="cms-hint" style={{ display: "block", marginBottom: "6px" }}>
+                          Programme Goals & Financial Grant Ambitions
+                        </span>
+                        <div className="cms-dossier-prose" style={{ borderLeftColor: "var(--cms-gold)" }}>
+                          {selectedApplicant.goals}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. AI & Digitalization Strategy */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-card-head">
+                      <h3 className="cms-dossier-card-title">
+                        <span>🤖</span> AI, Digitalization & Scaling Strategy
+                      </h3>
+                      <span className="cms-dossier-badge">Tech Transformation</span>
+                    </div>
+                    {selectedApplicant.ai_interest ? (
+                      <div className="cms-dossier-prose" style={{ borderLeftColor: "var(--cms-blue)" }}>
+                        {selectedApplicant.ai_interest}
+                      </div>
+                    ) : (
+                      <p style={{ color: "var(--cms-text-muted)", fontStyle: "italic", margin: 0 }}>
+                        No specific AI/digitalization notes provided.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 4. Internal Reviewer Notes & Decision Center */}
+                  <div className="cms-dossier-card" style={{ borderColor: "rgba(88, 172, 140, 0.35)" }}>
+                    <div className="cms-dossier-card-head">
+                      <h3 className="cms-dossier-card-title">
+                        <span>📝</span> Executive Reviewer Notes & Scoring
+                      </h3>
+                      <span className="cms-dossier-badge" style={{ background: "rgba(229, 184, 105, 0.15)", color: "var(--cms-gold)" }}>
+                        Private Internal
+                      </span>
+                    </div>
+
+                    <p className="cms-hint" style={{ marginBottom: "0.75rem" }}>
+                      Private evaluation notes, jury scoring, background verification notes, or interview observations. Auto-saved immediately on edit.
+                    </p>
+
+                    <textarea
+                      rows={5}
+                      defaultValue={selectedApplicant.admin_notes || ""}
+                      placeholder="Add evaluation comments, jury score, pitch feedback, or follow-up notes here…"
+                      style={{
+                        width: "100%",
+                        padding: "1rem",
+                        fontSize: "0.92rem",
+                        lineHeight: 1.6,
+                        background: "var(--cms-input-bg)",
+                        border: "1px solid var(--cms-border)",
+                        borderRadius: "var(--cms-radius-sm)",
+                        color: "var(--cms-text-primary)",
+                      }}
+                      onBlur={(e) =>
+                        updateApplicationStatus(
+                          selectedApplicant.id,
+                          selectedApplicant.status,
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <div style={{ marginTop: "10px" }}>
+                      <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
+                        Quick Reviewer Tags (Click to append):
+                      </span>
+                      <div className="cms-quick-tag-row">
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("High Potential Founder")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + High Potential
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("Shortlist for Pitch")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Shortlist for Pitch
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("Strong Market Fit")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Strong Market Fit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("Grant Candidate")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Grant Candidate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("Schedule Screening Interview")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Schedule Interview
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => appendAdminNote("Follow-up on Deck")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Request Deck
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <span className="cms-hint">Phone</span>
-                  <div style={{ fontWeight: 600 }}>{selectedApplicant.phone || "Not provided"}</div>
-                </div>
-                <div>
-                  <span className="cms-hint">Location</span>
-                  <div style={{ fontWeight: 600 }}>
-                    {selectedApplicant.city || "City TBA"}, {selectedApplicant.country || "Country TBA"}
+
+                {/* Right Column: Founder & Venture Dossier */}
+                <div className="cms-dossier-sidebar">
+                  {/* Founder Profile Card */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-profile-hero">
+                      <div className="cms-dossier-profile-avatar">
+                        {selectedApplicant.first_name?.[0] || ""}{selectedApplicant.last_name?.[0] || "A"}
+                      </div>
+                      <h3 className="cms-dossier-profile-name">
+                        {selectedApplicant.first_name} {selectedApplicant.last_name}
+                      </h3>
+                      <div className="cms-dossier-profile-role">
+                        {selectedApplicant.role_title || "Founder"} · {selectedApplicant.company_name || "Venture"}
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "10px" }}>
+                        <a
+                          href={`mailto:${selectedApplicant.email}`}
+                          className="cms-btn cms-btn-primary"
+                          style={{ fontSize: "0.8rem", padding: "6px 14px" }}
+                        >
+                          ✉ Send Email
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => copyTextToClipboard(selectedApplicant.email, "Email")}
+                          className="cms-btn cms-btn-secondary"
+                          style={{ fontSize: "0.8rem", padding: "6px 12px" }}
+                        >
+                          ⎘ Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Email Address</span>
+                      <span className="cms-dossier-field-val">
+                        <a
+                          href={`mailto:${selectedApplicant.email}`}
+                          style={{ color: "var(--cms-accent)", textDecoration: "none" }}
+                        >
+                          {selectedApplicant.email}
+                        </a>
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Phone Number</span>
+                      <span className="cms-dossier-field-val">
+                        {selectedApplicant.phone ? (
+                          <a
+                            href={`tel:${selectedApplicant.phone}`}
+                            style={{ color: "var(--cms-text-primary)", textDecoration: "none" }}
+                          >
+                            {selectedApplicant.phone}
+                          </a>
+                        ) : (
+                          <span style={{ color: "var(--cms-text-muted)" }}>Not provided</span>
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Location</span>
+                      <span className="cms-dossier-field-val">
+                        📍 {selectedApplicant.city || "City TBA"}, {selectedApplicant.country || "DE"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">GDPR Consent</span>
+                      <span className="cms-dossier-field-val" style={{ color: "var(--cms-accent)" }}>
+                        ✓ Verified & Opted-in
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Venture Dossier Card */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-card-head">
+                      <h4 className="cms-dossier-card-title">
+                        <span>🏢</span> Company Information
+                      </h4>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Company Name</span>
+                      <span className="cms-dossier-field-val" style={{ fontWeight: 700 }}>
+                        {selectedApplicant.company_name || "Not registered yet"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Website / Portfolio</span>
+                      <span className="cms-dossier-field-val">
+                        {selectedApplicant.company_website ? (
+                          <a
+                            href={
+                              selectedApplicant.company_website.startsWith("http")
+                                ? selectedApplicant.company_website
+                                : `https://${selectedApplicant.company_website}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "var(--cms-accent)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          >
+                            Visit Site ↗
+                          </a>
+                        ) : (
+                          <span style={{ color: "var(--cms-text-muted)" }}>No link provided</span>
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Venture Stage</span>
+                      <span className="cms-dossier-field-val" style={{ color: "var(--cms-gold)", fontWeight: 700 }}>
+                        {selectedApplicant.venture_stage || "Early stage"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Target Programme</span>
+                      <span className="cms-dossier-field-val">
+                        {selectedApplicant.event_title || "FIALI Summit 2026"}
+                      </span>
+                    </div>
+
+                    {selectedApplicant.referral_source && (
+                      <div className="cms-dossier-field-row">
+                        <span className="cms-dossier-field-key">Discovery Source</span>
+                        <span className="cms-dossier-field-val">
+                          {selectedApplicant.referral_source}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Audit Trail Card */}
+                  <div className="cms-dossier-card">
+                    <div className="cms-dossier-card-head">
+                      <h4 className="cms-dossier-card-title">
+                        <span>🛡️</span> Application Record
+                      </h4>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Record ID</span>
+                      <span className="cms-dossier-field-val" style={{ fontSize: "0.75rem", fontFamily: "monospace" }}>
+                        <button
+                          type="button"
+                          onClick={() => copyTextToClipboard(selectedApplicant.id, "Application ID")}
+                          className="cms-icon-btn"
+                          style={{ width: "auto", height: "auto", padding: "2px 6px", fontSize: "0.72rem", border: "1px solid var(--cms-border)", borderRadius: "3px" }}
+                          title="Copy UUID"
+                        >
+                          {selectedApplicant.id.slice(0, 8)}... ⎘
+                        </button>
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Timestamp (UTC)</span>
+                      <span className="cms-dossier-field-val" style={{ fontSize: "0.78rem" }}>
+                        {selectedApplicant.submitted_at || "—"}
+                      </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Review Pipeline</span>
+                      <span className="cms-dossier-field-val">
+                        <span className={`cms-status-badge ${selectedApplicant.status}`} style={{ textTransform: "capitalize" }}>
+                          {selectedApplicant.status}
+                        </span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <span className="cms-hint">Venture Stage</span>
-                  <div style={{ fontWeight: 600 }}>{selectedApplicant.venture_stage || "Not specified"}</div>
-                </div>
-              </div>
-
-              {selectedApplicant.motivation && (
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
-                    Founder Motivation
-                  </span>
-                  <div
-                    style={{
-                      background: "rgba(0,0,0,0.25)",
-                      padding: "1rem",
-                      borderRadius: "var(--cms-radius-sm)",
-                      lineHeight: 1.6,
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {selectedApplicant.motivation}
-                  </div>
-                </div>
-              )}
-
-              {selectedApplicant.ai_interest && (
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
-                    AI & Digitalization Interest
-                  </span>
-                  <div
-                    style={{
-                      background: "rgba(0,0,0,0.25)",
-                      padding: "1rem",
-                      borderRadius: "var(--cms-radius-sm)",
-                      lineHeight: 1.6,
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {selectedApplicant.ai_interest}
-                  </div>
-                </div>
-              )}
-
-              <div style={{ marginBottom: "1.5rem" }}>
-                <span className="cms-hint" style={{ display: "block", marginBottom: "4px" }}>
-                  Internal Reviewer Notes
-                </span>
-                <textarea
-                  rows={3}
-                  defaultValue={selectedApplicant.admin_notes || ""}
-                  placeholder="Private evaluation notes, scoring, or interview feedback…"
-                  onBlur={(e) =>
-                    updateApplicationStatus(
-                      selectedApplicant.id,
-                      selectedApplicant.status,
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span className="cms-hint">Change Status:</span>
-                  <select
-                    className="cms-status-select"
-                    value={selectedApplicant.status}
-                    onChange={(e) => updateApplicationStatus(selectedApplicant.id, e.target.value)}
-                  >
-                    <option value="submitted">Submitted</option>
-                    <option value="reviewing">In Review</option>
-                    <option value="shortlisted">Shortlisted</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="declined">Declined</option>
-                  </select>
-                </div>
-
-                <button onClick={() => setSelectedApplicant(null)} className="cms-btn cms-btn-primary">
-                  Done
-                </button>
               </div>
             </div>
           </div>

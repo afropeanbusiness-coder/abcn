@@ -17,15 +17,16 @@ import Img from "@/components/Img";
  * FAQ grouping. The numbers are the faq<N>Q / faq<N>A message keys; grouping
  * them here keeps the ordering editable without touching the markup.
  *
- * Deliberately unanswered, because no source we hold states them: the exact
- * dates, the venue, whether there is a participation fee, and the working
- * language of the programme itself. Add questions for those once confirmed -
- * an invented answer in an FAQ is worse than an absent one.
+ * The answers about dates, venue and cost are deliberately written at the
+ * level the organisation can actually stand behind today - the city and year
+ * are settled, the exact dates and venue are not. Keep them that way until
+ * those details are confirmed: an FAQ that guesses is worse than one that
+ * says "announced closer to the time".
  */
 const FAQ_GROUPS = [
-  { id: "fit", labelKey: "faqGroupFit", items: [1, 5, 6] },
-  { id: "programme", labelKey: "faqGroupProgramme", items: [2, 3, 4] },
-  { id: "applying", labelKey: "faqGroupApplying", items: [7, 8, 9, 10, 11, 12] },
+  { id: "fit", labelKey: "faqGroupFit", items: [1, 5, 6, 15] },
+  { id: "programme", labelKey: "faqGroupProgramme", items: [13, 2, 3, 4] },
+  { id: "applying", labelKey: "faqGroupApplying", items: [7, 8, 9, 14, 10, 11, 16, 12] },
 ] as const;
 
 const VALUE_KEYS = [1, 2, 3, 4];

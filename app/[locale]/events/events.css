@@ -284,7 +284,7 @@
   color:white;
 }
 .journey-header{
-  display:grid;grid-template-columns:1.1fr .9fr;gap:6vw;align-items:end;
+  display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:6vw;align-items:end;
 }
 .journey-header .benchmark-kicker{grid-column:1/-1}
 .journey-header h2 em{color:var(--fiali-mint)}
@@ -376,11 +376,16 @@
 
 .eligibility-section{
   padding:110px 7vw;
-  display:grid;grid-template-columns:.85fr 1.15fr;gap:8vw;background:white;
+  display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:8vw;background:white;
 }
 .eligibility-section>div:first-child>p{max-width:560px;color:rgba(19,37,58,.62);line-height:1.72}
-.eligibility-list{border-top:1px solid rgba(19,37,58,.18)}
-.eligibility-list>div{display:grid;grid-template-columns:55px 1fr;gap:16px;padding:21px 0;border-bottom:1px solid rgba(19,37,58,.18)}
+.eligibility-list{border-top:1px solid rgba(19,37,58,.18);min-width:0}
+/* minmax(0,1fr) rather than 1fr: a plain 1fr track takes its automatic minimum
+   from the content's min-content width, so a long line like "Internationale
+   Gruenderinnen in Frankfurt und Rhein-Main" refused to shrink and pushed the
+   whole page into horizontal scroll on phones. */
+.eligibility-list>div{display:grid;grid-template-columns:55px minmax(0,1fr);gap:16px;padding:21px 0;border-bottom:1px solid rgba(19,37,58,.18);min-width:0}
+.eligibility-list strong,.eligibility-list p{overflow-wrap:break-word}
 .eligibility-list span{font-size:0.78rem;color:var(--fiali-mid);font-weight:900;letter-spacing:.11em}
 .eligibility-list strong{font-size:1rem;line-height:1.45}
 
@@ -481,7 +486,9 @@
 
 /* Values for Frankfurt Section */
 .values-section{padding:110px 7vw;background:white}
-.values-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:52px}
+.values-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:52px;flex-wrap:wrap}
+/* Flex items do not shrink below their min-content width unless told to. */
+.values-heading>*{min-width:0}
 .values-heading h2{margin:18px 0 0;font-size:clamp(3.2rem,5.5vw,6rem);line-height:.9;letter-spacing:-.06em}
 .values-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
 .value-card{
@@ -550,15 +557,18 @@
 .assessment-cta a:hover{transform:translateY(-2px);background:var(--fiali-mid)}
 
 @media(max-width:1050px){
-  .benchmark-hero,.benchmark-about,.focus-section,.application-section,.eligibility-section{grid-template-columns:1fr}
+  .benchmark-hero,.benchmark-about,.focus-section,.application-section,.eligibility-section{grid-template-columns:minmax(0,1fr)}
   .benchmark-hero-image{min-height:560px}
   .focus-heading{margin-bottom:20px}
-  .journey-header{grid-template-columns:1fr}
+  /* minmax(0,...) everywhere a track holds long German text: a bare 1fr takes
+     its automatic minimum from min-content and will not shrink. */
+  .journey-header{grid-template-columns:minmax(0,1fr);gap:18px}
   .journey-header p{justify-self:start}
-  .benefits-heading{grid-template-columns:1fr}
+  .values-heading{flex-direction:column;align-items:flex-start;gap:16px}
+  .benefits-heading{grid-template-columns:minmax(0,1fr)}
   .benefits-heading h2{grid-column:1}
-  .benefits-grid{grid-template-columns:1fr 1fr}
-  .values-grid{grid-template-columns:1fr 1fr}
+  .benefits-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .values-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .application-intro{position:static}
 }
 @media(max-width:760px){
@@ -1015,4 +1025,40 @@
   .fiali-faq-answer{padding-right:0}
   .fiali-faq-cta{margin-top:52px;padding:26px 22px}
   .fiali-faq-cta a{width:100%;text-align:center}
+}
+
+/* ---------------------------------------------------------------------------
+   Long-word wrapping.
+
+   German compounds ("Wachstumspotenzial", "Gruenderinnen-Community") are long
+   unbreakable tokens. Inside a grid track sized with a bare `fr`, the track's
+   automatic minimum size is the content's min-content width, so a single long
+   word could not shrink and pushed the whole event page into horizontal scroll
+   on phones - roughly 45px of it, across the journey, ecosystem and
+   eligibility sections at once.
+
+   Allowing the words to wrap removes the oversized min-content width at the
+   source, which fixes every one of those sections without having to rewrite
+   each grid definition. Hyphenation is applied to the display headings only,
+   where a mid-word break reads as deliberate rather than broken; it uses the
+   lang attribute already set on <html>.
+   --------------------------------------------------------------------------- */
+.event-detail h1,
+.event-detail h2,
+.event-detail h3,
+.event-detail h4,
+.event-detail p,
+.event-detail li,
+.event-detail strong,
+.event-detail em,
+.event-detail span,
+.event-detail summary{
+  overflow-wrap:break-word;
+}
+
+@media(max-width:760px){
+  .event-detail h1,
+  .event-detail h2{
+    hyphens:auto;
+  }
 }

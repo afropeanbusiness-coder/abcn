@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import LogoMarquee from "@/components/LogoMarquee";
 import { neon } from "@/lib/neon";
@@ -10,6 +10,8 @@ import Img from "@/components/Img";
 
 export default function EventsPage() {
   const locale = useLocale();
+  const t = useTranslations("eventsList");
+  const tn = useTranslations("nav");
   const [events, setEvents] = useState<EventRecord[]>([fallbackEvent(locale)]);
 
   useEffect(() => {
@@ -52,23 +54,23 @@ export default function EventsPage() {
       <header className="events-nav">
         <Link className="events-brand" href="/">ABCN <small>Afropean Business & Culture Network</small></Link>
         <nav className="events-navlinks">
-          <Link href="/">Home</Link>
-          <Link href="/about">About</Link>
-          <Link href="/events">Events</Link>
-          <Link href={{ pathname: "/", hash: "join" }}>Join network</Link>
+          <Link href="/">{t("navHome")}</Link>
+          <Link href="/about">{tn("ourStory")}</Link>
+          <Link href="/events">{tn("events")}</Link>
+          <Link href={{ pathname: "/", hash: "join" }}>{tn("joinUs")}</Link>
         </nav>
       </header>
 
       <section className="events-hero">
-        <span className="eyeline">ABCN · Events & programmes</span>
-        <h1>Where connection<br/><em>becomes momentum.</em></h1>
-        <p>Founder programmes, cultural rooms and cross-border gatherings designed to turn community into practical opportunity.</p>
+        <span className="eyeline">{t("eyeline")}</span>
+        <h1>{t("heroTitle1")}<br/><em>{t("heroTitle2")}</em></h1>
+        <p>{t("heroLead")}</p>
       </section>
 
       <section className="events-container">
         <div className="events-head">
-          <h2>Current & featured.</h2>
-          <p>Priority events appear first. Published events are managed from ABCN’s event CMS and can be featured on the homepage independently.</p>
+          <h2>{t("headTitle")}</h2>
+          <p>{t("headLead")}</p>
         </div>
 
         <div className="event-grid">
@@ -82,13 +84,13 @@ export default function EventsPage() {
                   priority={index === 0}
                   sizes="(max-width: 900px) 100vw, 50vw"
                 />
-                {event.featured && <span className="event-badge">Featured</span>}
+                {event.featured && <span className="event-badge">{t("featured")}</span>}
               </div>
               <div className="event-body">
-                <span className="event-meta">{event.eyebrow || event.date_label || "ABCN event"}</span>
+                <span className="event-meta">{event.eyebrow || event.date_label || t("fallbackMeta")}</span>
                 <h3>{event.title}</h3>
                 <p>{event.short_description}</p>
-                <Link className="event-link" href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}>Event details →</Link>
+                <Link className="event-link" href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}>{t("details")} &rarr;</Link>
               </div>
             </article>
           ))}
@@ -98,13 +100,13 @@ export default function EventsPage() {
       <LogoMarquee
         theme="light"
         speed="slow"
-        label="Ecosystem & Institutional Partners"
-        tagline="Cross-Border Innovation"
+        label={t("partnersLabel")}
+        tagline={t("partnersTagline")}
       />
 
       <footer className="events-footer">
         <strong>ABCN</strong>
-        <span>African roots · European horizons</span>
+        <span>{t("footerCreed")}</span>
       </footer>
     </main>
   );

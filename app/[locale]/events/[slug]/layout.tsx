@@ -12,7 +12,9 @@ import JsonLd from "@/components/JsonLd";
  * The questions the FAQ actually renders, in display order.
  * Must match FAQ_GROUPS in page.tsx.
  */
-const FAQ_QUESTION_KEYS: number[] = [1, 5, 6, 2, 3, 4, 7, 8, 9, 10, 11, 12];
+const FAQ_QUESTION_KEYS: number[] = [
+  1, 5, 6, 15, 13, 2, 3, 4, 7, 8, 9, 14, 10, 11, 16, 12,
+];
 
 // Literal by requirement: Next reads this without evaluating imports.
 // Keep in step with EVENTS_REVALIDATE in lib/events-server.ts.

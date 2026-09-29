@@ -356,7 +356,15 @@
     "faq12Q": "What happens to my data, and can I withdraw it?",
     "faq12A": "Your application is stored in a database hosted in Frankfurt and is visible only to signed-in ABCN administrators. It is never readable from the public website and is not passed to programme partners automatically. You can ask us to correct or delete it at any time — the privacy notice explains how.",
     "navFaq": "FAQ",
-    "faqCtaText": "Still unsure whether FIALI is the right fit? The application itself is the best way to find out — it takes a few minutes."
+    "faqCtaText": "Still unsure whether FIALI is the right fit? The application itself is the best way to find out — it takes a few minutes.",
+    "faq13Q": "When and where does FIALI take place?",
+    "faq13A": "Frankfurt am Main, in 2026. The exact dates and the venue are confirmed closer to the time and announced here — applicants are notified directly, so you do not need to keep checking the page.",
+    "faq14Q": "Is there a fee to apply or take part?",
+    "faq14A": "Applying is free and nothing is charged at any point in the application. FIALI is a supported programme; if any participation costs apply, they are confirmed with selected founders before anyone commits to a place.",
+    "faq15Q": "What language do I need?",
+    "faq15A": "This website and the application form are both available in German and English, and you are welcome to apply in either. FIALI is built for the international founder community in Frankfurt and the Rhine-Main region.",
+    "faq16Q": "What if I am not selected this time?",
+    "faq16A": "The cohort is capped at 10 to 15 founders, so strong applications will not always fit a given round. ABCN runs business roundtables, cultural salons and cross-border gatherings throughout the year, and the network stays open to you regardless of the outcome."
   },
   "events": {
     "majorSupportersKicker": "Major Financial Supporters",
@@ -469,5 +477,20 @@
     "errMotivation": "Please share a brief motivation (minimum 15 characters).",
     "errConsent": "Please confirm that you have read the privacy notice before submitting.",
     "errSubmit": "We could not submit your application. Please try again, or email us directly."
+  },
+  "eventsList": {
+    "eyeline": "ABCN · Events & programmes",
+    "heroTitle1": "Where connection",
+    "heroTitle2": "becomes momentum.",
+    "heroLead": "Founder programmes, cultural rooms and cross-border gatherings designed to turn community into practical opportunity.",
+    "headTitle": "Current & featured.",
+    "headLead": "Priority events appear first. Published events are managed from ABCN’s event CMS and can be featured on the homepage independently.",
+    "featured": "Featured",
+    "fallbackMeta": "ABCN event",
+    "details": "Event details",
+    "partnersLabel": "Ecosystem & Institutional Partners",
+    "partnersTagline": "Cross-Border Innovation",
+    "footerCreed": "African roots · European horizons",
+    "navHome": "Home"
   }
 }

@@ -356,7 +356,15 @@
     "faq12Q": "Was geschieht mit meinen Daten, und kann ich sie zurückziehen?",
     "faq12A": "Ihre Bewerbung wird in einer Datenbank mit Standort Frankfurt gespeichert und ist ausschließlich für angemeldete ABCN-Administratorinnen und -Administratoren einsehbar. Sie ist über die öffentliche Website nicht abrufbar und wird nicht automatisch an Programmpartner weitergegeben. Sie können jederzeit Berichtigung oder Löschung verlangen — die Datenschutzerklärung erläutert, wie.",
     "navFaq": "FAQ",
-    "faqCtaText": "Noch unsicher, ob FIALI zu Ihnen passt? Die Bewerbung selbst ist der beste Weg, das herauszufinden — sie dauert nur wenige Minuten."
+    "faqCtaText": "Noch unsicher, ob FIALI zu Ihnen passt? Die Bewerbung selbst ist der beste Weg, das herauszufinden — sie dauert nur wenige Minuten.",
+    "faq13Q": "Wann und wo findet FIALI statt?",
+    "faq13A": "In Frankfurt am Main, im Jahr 2026. Die genauen Termine und der Veranstaltungsort werden rechtzeitig festgelegt und hier bekannt gegeben — Bewerberinnen werden direkt benachrichtigt, Sie müssen die Seite also nicht laufend prüfen.",
+    "faq14Q": "Fallen Kosten für die Bewerbung oder die Teilnahme an?",
+    "faq14A": "Die Bewerbung ist kostenfrei; zu keinem Zeitpunkt der Bewerbung wird etwas berechnet. FIALI ist ein gefördertes Programm. Sollten Kosten für die Teilnahme anfallen, werden diese mit den ausgewählten Gründerinnen geklärt, bevor sich jemand verbindlich für einen Platz entscheidet.",
+    "faq15Q": "Welche Sprache brauche ich?",
+    "faq15A": "Diese Website und das Bewerbungsformular stehen auf Deutsch und Englisch zur Verfügung — Sie können sich in beiden Sprachen bewerben. FIALI richtet sich an die internationale Gründerinnen-Community in Frankfurt und der Region Rhein-Main.",
+    "faq16Q": "Was, wenn ich dieses Mal nicht ausgewählt werde?",
+    "faq16A": "Der Jahrgang ist auf 10 bis 15 Gründerinnen begrenzt — auch starke Bewerbungen passen daher nicht immer in eine bestimmte Runde. ABCN veranstaltet das ganze Jahr über Business-Runden, Kultursalons und grenzüberschreitende Begegnungen; das Netzwerk steht Ihnen unabhängig vom Ergebnis offen."
   },
   "events": {
     "majorSupportersKicker": "Hauptförderer",
@@ -469,5 +477,20 @@
     "errMotivation": "Bitte teilen Sie eine kurze Motivation mit (mindestens 15 Zeichen).",
     "errConsent": "Bitte bestätigen Sie die Datenschutzerklärung vor dem Absenden.",
     "errSubmit": "Ihre Bewerbung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt per E-Mail."
+  },
+  "eventsList": {
+    "eyeline": "ABCN · Veranstaltungen & Programme",
+    "heroTitle1": "Wo Verbindung",
+    "heroTitle2": "zu Momentum wird.",
+    "heroLead": "Gründerinnenprogramme, kulturelle Räume und grenzüberschreitende Begegnungen, die aus Gemeinschaft konkrete Chancen machen.",
+    "headTitle": "Aktuell & im Fokus.",
+    "headLead": "Priorisierte Veranstaltungen erscheinen zuerst. Veröffentlichte Veranstaltungen werden im Veranstaltungs-CMS von ABCN verwaltet und können unabhängig davon auf der Startseite hervorgehoben werden.",
+    "featured": "Im Fokus",
+    "fallbackMeta": "ABCN-Veranstaltung",
+    "details": "Zur Veranstaltung",
+    "partnersLabel": "Ökosystem- & institutionelle Partner",
+    "partnersTagline": "Grenzüberschreitende Innovation",
+    "footerCreed": "Afrikanische Wurzeln · Europäische Horizonte",
+    "navHome": "Startseite"
   }
 }

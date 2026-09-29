@@ -196,9 +196,19 @@ export default function EventDetailPage() {
             </div>
             <div>
               <strong>
-                {event.grants?.amount_each ? `${event.grants.count || 2}x ${event.grants.amount_each}` : "90 days"}
+                {event.grants?.amount_each
+                  ? (event.grants.count && event.grants.count > 1
+                      ? `${event.grants.count}x ${event.grants.amount_each}`
+                      : event.grants.amount_each)
+                  : "90 days"}
               </strong>
-              <span>{event.grants?.amount_each ? (locale === "de" ? "Zuschüsse" : "Grants") : te("statRoadmap")}</span>
+              <span>
+                {event.grants?.amount_each
+                  ? (locale === "de"
+                      ? (event.grants.count === 1 ? "Hauptpreis" : "Zuschüsse")
+                      : (event.grants.count === 1 ? "Grand Prize" : "Grants"))
+                  : te("statRoadmap")}
+              </span>
             </div>
           </div>
 
@@ -468,8 +478,23 @@ export default function EventDetailPage() {
             <div>
               <span className="benchmark-kicker light">{te("grantsKicker")}</span>
               <strong className="grant-number">
-                {event.grants.count || 2} × {event.grants.amount_each || "€500"}
+                {event.grants.count && event.grants.count > 1
+                  ? `${event.grants.count} × ${event.grants.amount_each || "€1,000"}`
+                  : (event.grants.amount_each || "€1,000")}
               </strong>
+              {(!event.grants.count || event.grants.count === 1) && (
+                <span style={{
+                  display: "inline-block",
+                  marginTop: "8px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "rgba(255, 255, 255, 0.78)"
+                }}>
+                  {locale === "de" ? "Für 1 Person" : "To 1 person"}
+                </span>
+              )}
             </div>
             <div>
               <h2>{event.grants.title}</h2>

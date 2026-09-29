@@ -69,7 +69,7 @@ Verified programme details used in the Events section:
 - Target cohort: **10-15 international female founders** in Frankfurt / Rhine-Main, with a particular Afropean / immigrant diaspora focus, scalable business models and strong interest in AI and digitalization.
 - Stage 1 covers business-model development, leadership and positioning, AI and digitalization, and go-to-market strategy, culminating in an individual 90-day growth plan.
 - Stage 2 covers founder pitches, business matchmaking, expert keynotes and AI / innovation insights.
-- Two **€500 Startup Innovation Grants** are described for eligible early-stage founders.
+- A **€1,000 Startup Innovation Grand Prize** is awarded to 1 person (eligible early-stage founder).
 - Partner marks shown in the supplied deck include ABCN, DIVOC Rising, Black Women in Tech DACH, Kompass Frankfurt, Flourish & Prosper and EquiNet.
 
 ### Date / venue caution

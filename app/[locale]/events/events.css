@@ -90,7 +90,7 @@
 .requirement {display:grid;grid-template-columns:42px 1fr;padding:18px 0;border-bottom:1px solid rgba(19,37,58,.2);gap:15px}
 .requirement span:first-child {color:var(--fiali-mid);font-weight:900}
 .grant-card {background:#0a223d;color:white;padding:46px;position:relative;overflow:hidden}
-.grant-card::after {content:"€500";position:absolute;right:-25px;bottom:-35px;font-size:8rem;font-weight:900;color:rgba(185,207,232,.09);letter-spacing:-.08em}
+.grant-card::after {content:"€1,000";position:absolute;right:-25px;bottom:-35px;font-size:8rem;font-weight:900;color:rgba(185,207,232,.09);letter-spacing:-.08em}
 .grant-card .amount {font-size:4.5rem;color:var(--fiali-mint);font-weight:900;letter-spacing:-.06em}
 .grant-card p {color:rgba(255,255,255,.68);line-height:1.7;max-width:580px}
 .partners {background:white}

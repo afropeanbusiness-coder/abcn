@@ -217,11 +217,11 @@ export const FIALI_FALLBACK: EventRecord = {
     },
   ],
   grants: {
-    count: 2,
-    amount_each: "€500",
-    title: "Startup Innovation Grants",
+    count: 1,
+    amount_each: "€1,000",
+    title: "Startup Innovation Grand Prize",
     description:
-      "Two grants of €500 each support early-stage founders developing digital or technical solutions, including prototyping, product development, branding, market entry, initial marketing and sales, and eligible incorporation expenses.",
+      "A grand prize of €1,000 awarded to 1 person supports early-stage founders developing digital or technical solutions, including prototyping, product development, branding, market entry, initial marketing and sales, and eligible incorporation expenses.",
   },
   gallery: [
     { url: "/assets/fiali/female-founders-summit.jpg", caption: "Keynote & Founder Spotlight", category: "Summit", size: "wide" },
@@ -246,7 +246,7 @@ export const FIALI_FALLBACK: EventRecord = {
     { title: "Frankfurt ecosystem access", description: "Build direct connections with corporates, investors, business angels and strategic partners." },
     { title: "Founder visibility", description: "Pitch, present and position your venture in front of people who can open relevant doors." },
     { title: "AI that is useful now", description: "Explore concrete ways to apply AI and digital tools to your operating model and growth." },
-    { title: "Innovation grant opportunity", description: "Eligible early-stage founders can be considered for one of two €500 Startup Innovation Grants." },
+    { title: "Grand Prize opportunity", description: "Eligible early-stage founders can compete for the €1,000 Startup Innovation Grand Prize awarded to 1 person." },
   ],
 };
 
@@ -314,11 +314,11 @@ export const FIALI_FALLBACK_DE: Partial<EventRecord> = {
     "Wachstumspotenzial in Frankfurt",
   ],
   grants: {
-    count: 2,
-    amount_each: "500 €",
-    title: "Startup-Innovationszuschüsse",
+    count: 1,
+    amount_each: "1.000 €",
+    title: "Startup-Innovationshauptpreis",
     description:
-      "Zwei Zuschüsse à 500 € unterstützen Gründerinnen in der Frühphase bei digitalen oder technischen Lösungen – etwa Prototyping, Produktentwicklung, Branding, Markteintritt, erstes Marketing und Vertrieb sowie förderfähige Gründungskosten.",
+      "Ein Hauptpreis von 1.000 € für 1 Person unterstützt Gründerinnen in der Frühphase bei digitalen oder technischen Lösungen – etwa Prototyping, Produktentwicklung, Branding, Markteintritt, erstes Marketing und Vertrieb sowie förderfähige Gründungskosten.",
   },
   focus_areas: [
     { title: "Geschäftsmodell-Entwicklung", description: "Modell, Nutzenversprechen und die kommerzielle Logik des Unternehmens schärfen." },
@@ -332,7 +332,7 @@ export const FIALI_FALLBACK_DE: Partial<EventRecord> = {
     { title: "Zugang zum Frankfurter Ökosystem", description: "Direkte Verbindungen zu Unternehmen, Investoren, Business Angels und strategischen Partnern aufbauen." },
     { title: "Sichtbarkeit als Gründerin", description: "Ihr Unternehmen vor Menschen präsentieren, die relevante Türen öffnen können." },
     { title: "KI, die jetzt nützt", description: "Konkrete Wege finden, KI und digitale Werkzeuge auf Ihr Geschäftsmodell anzuwenden." },
-    { title: "Chance auf einen Innovationszuschuss", description: "Förderfähige Gründerinnen können für einen von zwei Zuschüssen à 500 € berücksichtigt werden." },
+    { title: "Chance auf den Hauptpreis", description: "Förderfähige Gründerinnen können um den Startup-Innovationshauptpreis in Höhe von 1.000 € für 1 Person pitchen." },
   ],
 };
 

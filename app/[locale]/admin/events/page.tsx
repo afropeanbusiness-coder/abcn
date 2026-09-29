@@ -3577,6 +3577,13 @@ export default function EventsAdminPage() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => appendAdminNote("Grand Prize Candidate")}
+                          className="cms-quick-tag-btn"
+                        >
+                          + Grand Prize Candidate
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => appendAdminNote("Grant Candidate")}
                           className="cms-quick-tag-btn"
                         >

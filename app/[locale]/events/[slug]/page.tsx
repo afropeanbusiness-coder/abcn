@@ -13,6 +13,21 @@ import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import Img from "@/components/Img";
 
+/**
+ * FAQ grouping. The numbers are the faq<N>Q / faq<N>A message keys; grouping
+ * them here keeps the ordering editable without touching the markup.
+ *
+ * Deliberately unanswered, because no source we hold states them: the exact
+ * dates, the venue, whether there is a participation fee, and the working
+ * language of the programme itself. Add questions for those once confirmed -
+ * an invented answer in an FAQ is worse than an absent one.
+ */
+const FAQ_GROUPS = [
+  { id: "fit", labelKey: "faqGroupFit", items: [1, 5, 6] },
+  { id: "programme", labelKey: "faqGroupProgramme", items: [2, 3, 4] },
+  { id: "applying", labelKey: "faqGroupApplying", items: [7, 8, 9, 10, 11, 12] },
+] as const;
+
 const VALUE_KEYS = [1, 2, 3, 4];
 
 const GRANT_EXPENSE_KEYS = [1, 2, 3, 4, 5, 6];
@@ -134,6 +149,7 @@ export default function EventDetailPage() {
           )}
           {isFiali && <a href="#gallery">{te("navGallery")}</a>}
           <a href="#eligibility">{te("navWhoFor")}</a>
+          {isFiali && <a href="#faq">{te("navFaq")}</a>}
           {hasApplications && (
             <a className="nav-apply" href="#apply">
               {event.application_cta || "Apply"}
@@ -695,14 +711,40 @@ export default function EventDetailPage() {
               <em>{te("faqTitle2")}</em>
             </h2>
           </div>
-          <div className="fiali-faq-grid">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div className="fiali-faq-item" key={n}>
-                <h3>{te(`faq${n}Q`)}</h3>
-                <p>{te(`faq${n}A`)}</p>
+
+          <div className="fiali-faq-groups">
+            {FAQ_GROUPS.map((group) => (
+              <div className="fiali-faq-group" key={group.id}>
+                <h3 className="fiali-faq-grouplabel">{te(group.labelKey)}</h3>
+
+                {group.items.map((n, index) => (
+                  /* <details> rather than a JS accordion: it opens without
+                     hydration, is keyboard-operable for free, and keeps every
+                     answer in the DOM for crawlers even while collapsed. */
+                  <details
+                    className="fiali-faq-item"
+                    key={n}
+                    open={group.id === "fit" && index === 0}
+                  >
+                    <summary>
+                      <span>{te(`faq${n}Q`)}</span>
+                      <i className="fiali-faq-marker" aria-hidden="true" />
+                    </summary>
+                    <div className="fiali-faq-answer">
+                      <p>{te(`faq${n}A`)}</p>
+                    </div>
+                  </details>
+                ))}
               </div>
             ))}
           </div>
+
+          {hasApplications && (
+            <div className="fiali-faq-cta">
+              <p>{te("faqCtaText")}</p>
+              <a href="#apply">{event.application_cta || "Apply now"} &rarr;</a>
+            </div>
+          )}
         </section>
       )}
 

@@ -149,3 +149,29 @@ export function buildBreadcrumbJsonLd(
     })),
   };
 }
+
+/**
+ * FAQPage markup for the event FAQ.
+ *
+ * Note on expectations: since Google's August 2023 change, FAQ rich results
+ * are shown almost exclusively for authoritative government and health sites,
+ * so this will not add an expandable block to ABCN's search listing. It is
+ * still worth emitting - it states the question/answer structure explicitly
+ * for the assistants and answer engines that increasingly read pages this way,
+ * and it costs nothing at runtime.
+ */
+export function buildFaqJsonLd(
+  entries: { question: string; answer: string }[]
+) {
+  if (entries.length === 0) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: entries.map((entry) => ({
+      "@type": "Question",
+      name: entry.question,
+      acceptedAnswer: { "@type": "Answer", text: entry.answer },
+    })),
+  };
+}

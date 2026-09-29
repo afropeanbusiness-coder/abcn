@@ -4,8 +4,15 @@ import { siteUrl } from "@/lib/legal";
 import { alternatesFor, urlFor } from "@/lib/seo";
 import type { Locale } from "@/i18n/routing";
 import { getEventBySlug } from "@/lib/events-server";
-import { buildBreadcrumbJsonLd, buildEventJsonLd } from "@/lib/structured-data";
+import { FIALI_SLUG } from "@/lib/events";
+import { buildBreadcrumbJsonLd, buildEventJsonLd, buildFaqJsonLd } from "@/lib/structured-data";
 import JsonLd from "@/components/JsonLd";
+
+/**
+ * The questions the FAQ actually renders, in display order.
+ * Must match FAQ_GROUPS in page.tsx.
+ */
+const FAQ_QUESTION_KEYS: number[] = [1, 5, 6, 2, 3, 4, 7, 8, 9, 10, 11, 12];
 
 // Literal by requirement: Next reads this without evaluating imports.
 // Keep in step with EVENTS_REVALIDATE in lib/events-server.ts.
@@ -74,6 +81,19 @@ export default async function EventDetailLayout({
   const event = await getEventBySlug(slug, locale);
   const t = await getTranslations({ locale, namespace: "nav" });
 
+  // The FAQ is rendered by a client component, so its structured data is built
+  // here instead - crawlers read JSON-LD from the server response.
+  const te = await getTranslations({ locale, namespace: "event" });
+  const faq =
+    event?.slug === FIALI_SLUG
+      ? buildFaqJsonLd(
+          FAQ_QUESTION_KEYS.map((n) => ({
+            question: te(`faq${n}Q`),
+            answer: te(`faq${n}A`),
+          }))
+        )
+      : null;
+
   const breadcrumb = event
     ? buildBreadcrumbJsonLd([
         { name: "ABCN", url: urlFor("/", locale as Locale) },
@@ -89,6 +109,7 @@ export default async function EventDetailLayout({
     <>
       {event && <JsonLd data={buildEventJsonLd(event, locale as Locale)} />}
       <JsonLd data={breadcrumb} />
+      <JsonLd data={faq} />
       {children}
     </>
   );

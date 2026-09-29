@@ -903,3 +903,116 @@
 }
 
 
+
+/* ---------------------------------------------------------------------------
+   FAQ
+
+   Built on <details>/<summary>: it opens before hydration, is keyboard and
+   screen-reader operable without any ARIA of our own, and keeps every answer
+   in the DOM while collapsed so crawlers still index the text.
+   --------------------------------------------------------------------------- */
+.fiali-faq{
+  padding:110px 7vw 120px;
+  background:#fff;
+}
+.fiali-faq-head{max-width:760px}
+.fiali-faq-head h2{
+  margin:24px 0 0;
+  font-size:clamp(3rem,5.4vw,6rem);
+  line-height:.9;letter-spacing:-.07em;
+}
+.fiali-faq-head h2 em{font-family:Georgia,serif;font-weight:400;color:var(--fiali-mid)}
+
+.fiali-faq-groups{
+  margin-top:64px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:52px 6vw;
+  align-items:start;
+}
+.fiali-faq-grouplabel{
+  margin:0 0 6px;
+  padding-bottom:14px;
+  border-bottom:2px solid var(--fiali-deep);
+  font-size:0.78rem;letter-spacing:.15em;text-transform:uppercase;
+  font-weight:900;color:var(--fiali-deep);
+}
+
+.fiali-faq-item{
+  border-bottom:1px solid rgba(19,37,58,.16);
+}
+.fiali-faq-item summary{
+  /* Removes the native triangle; the +/- marker below replaces it. */
+  list-style:none;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding:22px 0;
+  cursor:pointer;
+  font-size:1.02rem;font-weight:700;line-height:1.45;color:#13253a;
+  transition:color .18s ease;
+}
+.fiali-faq-item summary::-webkit-details-marker{display:none}
+.fiali-faq-item summary:hover{color:var(--fiali-mid)}
+.fiali-faq-item summary:focus-visible{
+  outline:2px solid var(--fiali-mid);
+  outline-offset:3px;
+}
+
+/* Plus that becomes a minus when the item is open. */
+.fiali-faq-marker{
+  position:relative;flex-shrink:0;
+  width:18px;height:18px;margin-top:4px;
+}
+.fiali-faq-marker::before,.fiali-faq-marker::after{
+  content:"";position:absolute;background:var(--fiali-mid);
+  transition:transform .22s ease,opacity .22s ease;
+}
+.fiali-faq-marker::before{top:8px;left:0;width:18px;height:2px}
+.fiali-faq-marker::after{left:8px;top:0;width:2px;height:18px}
+.fiali-faq-item[open] .fiali-faq-marker::after{transform:scaleY(0);opacity:0}
+.fiali-faq-item[open] summary{color:var(--fiali-mid)}
+
+.fiali-faq-answer{
+  padding:0 40px 24px 0;
+  animation:faqReveal .24s ease-out;
+}
+.fiali-faq-answer p{
+  margin:0;
+  color:rgba(19,37,58,.7);
+  font-size:.95rem;line-height:1.75;
+}
+@keyframes faqReveal{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* Respect a reduced-motion preference. */
+@media(prefers-reduced-motion:reduce){
+  .fiali-faq-answer{animation:none}
+  .fiali-faq-marker::before,.fiali-faq-marker::after{transition:none}
+}
+
+.fiali-faq-cta{
+  margin-top:72px;padding:34px 40px;
+  display:flex;align-items:center;justify-content:space-between;gap:28px;
+  flex-wrap:wrap;
+  background:var(--fiali-light);
+  border-left:3px solid var(--fiali-mid);
+}
+.fiali-faq-cta p{
+  margin:0;max-width:620px;
+  color:rgba(19,37,58,.72);line-height:1.65;font-size:.98rem;
+}
+.fiali-faq-cta a{
+  flex-shrink:0;
+  padding:15px 22px;
+  background:var(--fiali-deep);color:#fff;
+  font-size:0.78rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase;
+}
+.fiali-faq-cta a:hover{background:var(--fiali-mid)}
+
+@media(max-width:900px){
+  .fiali-faq{padding:80px 22px 90px}
+  .fiali-faq-groups{grid-template-columns:1fr;gap:40px;margin-top:44px}
+  .fiali-faq-answer{padding-right:0}
+  .fiali-faq-cta{margin-top:52px;padding:26px 22px}
+  .fiali-faq-cta a{width:100%;text-align:center}
+}

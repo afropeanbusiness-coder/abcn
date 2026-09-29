@@ -3,6 +3,8 @@ export type EventStage = {
   title: string;
   description: string;
   items: string[];
+  image?: string;
+  image_overlay?: string;
 };
 
 export type EventPartner = {
@@ -137,9 +139,11 @@ export const FIALI_FALLBACK: EventRecord = {
   stages: [
     {
       stage: "Stage 1",
-      title: "Female Innovation Growth Lab",
+      title: "Interactive Workshop & Strategy Lab",
       description:
         "A full-day intensive workshop supported by an external AI expert and startup specialist. Each participant builds an individual 90-day growth plan.",
+      image: "/assets/abcn/real/interactive-workshop-session.jpg",
+      image_overlay: "Interactive Workshop & Strategy Lab",
       items: [
         "Business Model Development",
         "Leadership & Positioning",
@@ -150,9 +154,11 @@ export const FIALI_FALLBACK: EventRecord = {
     },
     {
       stage: "Stage 2",
-      title: "Female Founder Business Networking Summit",
+      title: "Closing Summit, Pitch & Ecosystem Matchmaking",
       description:
         "An exclusive evening ecosystem summit connecting cohort founders directly with Frankfurt corporates, investors, business angels, and institutional innovators.",
+      image: "/assets/abcn/real/startup-pitch-showcase.jpg",
+      image_overlay: "Pitch Showcase & Ecosystem Matchmaking",
       items: [
         "Founder Pitches",
         "Business Matchmaking",

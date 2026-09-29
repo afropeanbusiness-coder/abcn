@@ -188,6 +188,8 @@ VALUES (
       "stage": "Stage 01",
       "title": "Interactive Workshop & Strategy Lab",
       "description": "A full-day intensive session focused on business model refinement, AI and digital adoption, market positioning, and financial planning.",
+      "image": "/assets/abcn/real/interactive-workshop-session.jpg",
+      "image_overlay": "Interactive Workshop & Strategy Lab",
       "items": [
         "Business Model & Scalability refinement",
         "AI and Digital Transformation for modern operations",
@@ -200,11 +202,13 @@ VALUES (
       "stage": "Stage 02",
       "title": "Closing Summit, Pitch & Ecosystem Matchmaking",
       "description": "High-visibility closing event celebrating female entrepreneurship, featuring participant pitches, curated networking, and micro-grant announcements.",
+      "image": "/assets/abcn/real/startup-pitch-showcase.jpg",
+      "image_overlay": "Pitch Showcase & Ecosystem Matchmaking",
       "items": [
         "Welcome addresses and opening keynote",
         "Founder Pitch Session to jury, investors, and ecosystem partners",
         "Panel: Inclusive Innovation & Supporting Diverse Founders in Frankfurt",
-        "Announcement of €1,000 Micro-Grants for outstanding founders",
+        "Announcement & award of the €1,000 Grand Prize to 1 founder",
         "Curated Networking with corporates, angels, and ecosystem leaders"
       ]
     }

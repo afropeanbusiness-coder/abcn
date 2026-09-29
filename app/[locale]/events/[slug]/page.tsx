@@ -412,17 +412,24 @@ export default function EventDetailPage() {
             {displayedStages.map((stage, index) => (
               <article className="journey-card" key={stage.title}>
                 <div>
-                  {isFiali && (
-                    <div className="stage-image-preview">
-                      <Img
-                        src={stage.stage.includes("1") ? "/assets/fiali/growth-lab-session.jpg" : "/assets/fiali/female-founders-summit.jpg"}
-                        alt={stage.title}
-                      />
-                      <span className="stage-image-overlay">
-                        {stage.stage.includes("1") ? "Growth Lab AI Workshop" : "Networking Summit & Pitches"}
-                      </span>
-                    </div>
-                  )}
+                  {isFiali && (() => {
+                    const isStage1 = /1|lab|workshop|strategy/i.test(stage.stage) || /workshop|lab|strategy|phase 1/i.test(stage.title);
+                    const stageImg = (stage as any).image || (isStage1 ? "/assets/abcn/real/interactive-workshop-session.jpg" : "/assets/abcn/real/startup-pitch-showcase.jpg");
+                    const stageOverlay = (stage as any).image_overlay || (isStage1 ? "Interactive Workshop & Strategy Lab" : "Pitch Showcase & Ecosystem Matchmaking");
+                    return (
+                      <div className="stage-image-preview">
+                        <Img
+                          src={stageImg}
+                          alt={stage.title}
+                          className="stage-preview-img"
+                          sizes="(max-width: 900px) 100vw, 550px"
+                        />
+                        <span className="stage-image-overlay">
+                          {stageOverlay}
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <div className="journey-topline">
                     <span>{String(activeStage === "all" ? index + 1 : Number(activeStage) + 1).padStart(2, "0")}</span>
                     <strong>{stage.stage}</strong>

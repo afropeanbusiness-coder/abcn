@@ -291,14 +291,60 @@
 .journey-header p{margin:0 0 9px;max-width:570px;color:rgba(255,255,255,.62);line-height:1.72;justify-self:end}
 .journey-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:68px}
 .journey-card{
-  position:relative;min-height:520px;padding:38px;
+  position:relative;min-height:520px;padding:34px;
   border:1px solid rgba(255,255,255,.15);
   background:rgba(255,255,255,.045);
   transition:transform .32s ease,background .32s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .journey-card:hover{transform:translateY(-7px);background:rgba(255,255,255,.07)}
+
+.stage-image-preview {
+  width: 100%;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  position: relative;
+  background: #06192d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.stage-image-preview img,
+.stage-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.journey-card:hover .stage-image-preview img,
+.journey-card:hover .stage-preview-img {
+  transform: scale(1.04);
+}
+
+.stage-image-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  background: rgba(7, 27, 51, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffb833;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
 .journey-topline{display:flex;justify-content:space-between;gap:20px;color:var(--fiali-mint);font-size:0.78rem;letter-spacing:.15em;text-transform:uppercase}
-.journey-card h3{margin:55px 0 22px;max-width:620px;font-size:clamp(2.5rem,4vw,4.7rem);line-height:.92;letter-spacing:-.06em}
+.journey-card h3{margin:18px 0 16px;max-width:620px;font-size:clamp(1.9rem,3vw,2.8rem);line-height:1.1;letter-spacing:-.035em}
 .journey-card>p{max-width:580px;color:rgba(255,255,255,.67);line-height:1.7}
 .journey-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:34px}
 .journey-tags span{padding:10px 11px;border:1px solid rgba(255,255,255,.17);font-size:0.78rem;letter-spacing:.09em;text-transform:uppercase}

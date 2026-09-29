@@ -193,6 +193,7 @@ export default function EventsAdminPage() {
 
   // Admin Theme State (Dark / Light)
   const [adminTheme, setAdminTheme] = useState<AdminTheme>("dark");
+  const [loadingDuration, setLoadingDuration] = useState(0);
 
   // Website Partners State (Global Site Partners)
   const [sitePartners, setSitePartners] = useState<SitePartner[]>([]);
@@ -224,6 +225,17 @@ export default function EventsAdminPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (mode !== "checking") {
+      setLoadingDuration(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingDuration((d) => d + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [mode]);
+
   function toggleAdminTheme(t: AdminTheme) {
     setAdminTheme(t);
     if (typeof window !== "undefined") {
@@ -254,10 +266,15 @@ export default function EventsAdminPage() {
     setTimeout(() => setToast(null), 4500);
   }
 
-  // Resilient session loader
+  // Resilient session loader with timeout protection
   async function refreshSession() {
     try {
-      const { data } = await neon.auth.getSession();
+      // Race session check against a 3.8s timeout so the UI never hangs indefinitely
+      const sessionPromise = neon.auth.getSession();
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 3800)
+      );
+      const { data } = await Promise.race([sessionPromise, timeoutPromise]);
       const user = (data as any)?.user || (data as any)?.session?.user;
       if (!user) {
         setMode("signed-out");
@@ -1100,14 +1117,97 @@ export default function EventsAdminPage() {
 
   if (mode === "checking") {
     return (
-      <main className="cms">
-        <div className="cms-auth-container">
-          <div className="cms-auth-box" style={{ textAlign: "center" }}>
-            <div className="cms-logo-badge" style={{ margin: "0 auto 1rem" }}>
-              A
+      <main className="cms" data-theme={adminTheme}>
+        <header className="cms-top">
+          <div className="cms-brand">
+            <span className="cms-logo-badge">A</span>
+            <div className="cms-brand-text">
+              <h1>ABCN Executive Portal</h1>
+              <span>Control Center</span>
             </div>
-            <h2>Connecting to ABCN Control Center…</h2>
-            <p className="cms-hint">Verifying authenticated session and database connection</p>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {/* Theme switcher */}
+            <div className="cms-theme-switch-wrap" style={{ marginRight: "6px" }}>
+              <button
+                type="button"
+                className={`cms-theme-btn ${adminTheme === "dark" ? "active" : ""}`}
+                onClick={() => toggleAdminTheme("dark")}
+                title="Switch to Dark Mode"
+              >
+                🌙
+              </button>
+              <button
+                type="button"
+                className={`cms-theme-btn ${adminTheme === "light" ? "active" : ""}`}
+                onClick={() => toggleAdminTheme("light")}
+                title="Switch to Light Mode"
+              >
+                ☀️
+              </button>
+            </div>
+
+            <Link href="/events" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
+              View Public Events ↗
+            </Link>
+          </div>
+        </header>
+
+        <div className="cms-auth-container">
+          <div className="cms-loader-card">
+            {/* Rotating Orbital Rings and Core Emblem */}
+            <div className="cms-loader-emblem-wrap">
+              <div className="cms-loader-ring-outer" />
+              <div className="cms-loader-ring-inner" />
+              <div className="cms-loader-core-badge">A</div>
+            </div>
+
+            <span className="cms-loader-eyebrow">Executive Gateway</span>
+            <h2 className="cms-loader-title">Connecting to Control Center</h2>
+            <p className="cms-loader-subtitle">
+              Verifying cryptographic credentials and establishing secure database pipeline…
+            </p>
+
+            {/* Indeterminate Animated Progress Bar */}
+            <div className="cms-loader-bar-wrap">
+              <div className="cms-loader-bar-fill" />
+            </div>
+
+            {/* Live Step Badge */}
+            <div className="cms-loader-step-pill">
+              <span className="cms-loader-dot-pulse" />
+              <span>
+                {loadingDuration === 0
+                  ? "Establishing secure gateway handshake…"
+                  : loadingDuration === 1
+                  ? "Verifying executive credentials…"
+                  : "Connecting to database pipeline…"}
+              </span>
+            </div>
+
+            {/* Direct Instant Action Fallbacks */}
+            <div className="cms-loader-fallback-actions">
+              <button
+                type="button"
+                onClick={() => setMode("signed-out")}
+                className="cms-btn cms-btn-primary"
+                style={{ fontSize: "0.82rem", padding: "7px 16px" }}
+              >
+                Proceed to Sign In →
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadingDuration(0);
+                  refreshSession();
+                }}
+                className="cms-btn cms-btn-secondary"
+                style={{ fontSize: "0.82rem", padding: "7px 14px" }}
+              >
+                Retry ↻
+              </button>
+            </div>
           </div>
         </div>
       </main>

@@ -2329,3 +2329,222 @@
     padding: 1rem;
   }
 }
+
+/* ==========================================================================
+   Executive Loading Screen & Gateway Connector
+   ========================================================================== */
+
+.cms-loader-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--cms-surface);
+  border: 1px solid var(--cms-border);
+  border-radius: var(--cms-radius-lg);
+  padding: 3rem 2.5rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: cmsCardEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cms-loader-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cms-accent), var(--cms-gold), var(--cms-blue), var(--cms-accent));
+  background-size: 200% 100%;
+  animation: cmsShimmerBar 2s linear infinite;
+}
+
+@keyframes cmsShimmerBar {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes cmsCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Emblem with Rotating Orbital Rings */
+.cms-loader-emblem-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cms-loader-ring-outer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--cms-accent);
+  border-right-color: var(--cms-gold);
+  animation: cmsSpinRing 1.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.cms-loader-ring-inner {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 2px dashed rgba(88, 172, 140, 0.35);
+  animation: cmsSpinRingRev 4s linear infinite;
+}
+
+@keyframes cmsSpinRing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes cmsSpinRingRev {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.cms-loader-core-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--cms-radius-md);
+  background: linear-gradient(135deg, #0F4C38 0%, #1A6B50 50%, #58AC8C 100%);
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(88, 172, 140, 0.35);
+  animation: cmsPulseBadge 2.2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes cmsPulseBadge {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 16px rgba(88, 172, 140, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(88, 172, 140, 0.55);
+  }
+}
+
+.cms-loader-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--cms-accent);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.cms-loader-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--cms-text-primary);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.cms-loader-subtitle {
+  font-size: 0.86rem;
+  color: var(--cms-text-secondary);
+  line-height: 1.55;
+  margin: 0 auto 1.5rem;
+  max-width: 360px;
+}
+
+/* Linear Progress Bar */
+.cms-loader-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+[data-theme="light"] .cms-loader-bar-wrap {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.cms-loader-bar-fill {
+  height: 100%;
+  width: 45%;
+  background: linear-gradient(90deg, var(--cms-accent), var(--cms-gold));
+  border-radius: 999px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: cmsBarIndeterminate 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes cmsBarIndeterminate {
+  0% {
+    left: -40%;
+    width: 30%;
+  }
+  50% {
+    left: 30%;
+    width: 60%;
+  }
+  100% {
+    left: 100%;
+    width: 30%;
+  }
+}
+
+/* Status Step Pill */
+.cms-loader-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--cms-card-bg-subtle);
+  border: 1px solid var(--cms-border);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cms-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.cms-loader-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cms-accent);
+  box-shadow: 0 0 8px var(--cms-accent);
+  animation: cmsDotPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes cmsDotPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Action Fallbacks */
+.cms-loader-fallback-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cms-border);
+  animation: cmsFadeIn 0.3s ease;
+}

@@ -361,40 +361,55 @@ export default function EventsAdminPage() {
 
   async function signIn(e: FormEvent) {
     e.preventDefault();
-    const { error: authError } = await neon.auth.signIn.email({
-      email: authForm.email,
-      password: authForm.password,
-    });
-    if (authError) {
-      showToast(authError.message || "Could not sign in.", "error");
-      return;
+    try {
+      const res = await neon.auth.signIn.email({
+        email: authForm.email,
+        password: authForm.password,
+      });
+      if (res?.error) {
+        showToast(res.error.message || "Invalid email or password.", "error");
+        return;
+      }
+      showToast("Signed in successfully.");
+      await refreshSession();
+    } catch (err: any) {
+      console.error("Sign-in exception:", err);
+      showToast(err?.message || "Invalid email or password. Please verify your credentials.", "error");
     }
-    showToast("Signed in successfully.");
-    await refreshSession();
   }
 
   async function signUp() {
-    const { error: authError } = await neon.auth.signUp.email({
-      name: authForm.name || "ABCN Admin",
-      email: authForm.email,
-      password: authForm.password,
-    });
-    if (authError) {
-      showToast(authError.message || "Could not create account.", "error");
-      return;
+    try {
+      const res = await neon.auth.signUp.email({
+        name: authForm.name || "ABCN Admin",
+        email: authForm.email,
+        password: authForm.password,
+      });
+      if (res?.error) {
+        showToast(res.error.message || "Could not create account.", "error");
+        return;
+      }
+      showToast("Account created. Welcome to ABCN CMS.");
+      await refreshSession();
+    } catch (err: any) {
+      console.error("Sign-up exception:", err);
+      showToast(err?.message || "Could not create account.", "error");
     }
-    showToast("Account created. Welcome to ABCN CMS.");
-    await refreshSession();
   }
 
   async function claimAdmin() {
-    const { data, error: rpcError } = await neon.rpc("claim_cms_admin", { p_token: claimToken });
-    if (rpcError || !data) {
-      showToast(rpcError?.message || "Invalid setup token.", "error");
-      return;
+    try {
+      const { data, error: rpcError } = await neon.rpc("claim_cms_admin", { p_token: claimToken });
+      if (rpcError || !data) {
+        showToast(rpcError?.message || "Invalid setup token.", "error");
+        return;
+      }
+      showToast("Administrator role assigned! Refreshing session...");
+      await refreshSession();
+    } catch (err: any) {
+      console.error("Claim admin exception:", err);
+      showToast(err?.message || "Invalid setup token.", "error");
     }
-    showToast("Administrator role assigned! Refreshing session...");
-    await refreshSession();
   }
 
   async function signOut() {
@@ -1091,10 +1106,13 @@ export default function EventsAdminPage() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@afropeanbusiness.com"
+                  placeholder="afropeanbusiness@gmail.com"
                   value={authForm.email}
                   onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                 />
+                <span className="cms-hint">
+                  Registered Executive Account: <code>afropeanbusiness@gmail.com</code>
+                </span>
               </div>
 
               <div className="cms-field">

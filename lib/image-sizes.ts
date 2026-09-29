@@ -30,10 +30,10 @@ export const IMAGE_SIZES: Record<string, ImageSize> = {
   "/assets/fiali/logos/abcn.png": { width: 288, height: 113 },
   "/assets/fiali/logos/black-women-in-tech-dach.png": { width: 188, height: 209 },
   "/assets/fiali/logos/divoc-rising.png": { width: 356, height: 216 },
-  "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png": { width: 120, height: 50 },
-  "/assets/fiali/logos/frankfurt-forward.png": { width: 147, height: 32 },
   "/assets/fiali/logos/flourish-prosper.png": { width: 401, height: 126 },
+  "/assets/fiali/logos/frankfurt-forward.png": { width: 441, height: 96 },
   "/assets/fiali/logos/kompass-frankfurt.png": { width: 599, height: 120 },
+  "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png": { width: 360, height: 140 },
   "/assets/fiali/partners-strip.jpg": { width: 900, height: 114 },
 };
 

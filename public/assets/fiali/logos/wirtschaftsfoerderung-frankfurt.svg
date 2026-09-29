@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+    <g fill="#BA1B2D">
+      <!-- Text: German bold grotesque/sans-serif -->
+      <text x="8" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="0.5">WIRTSCHAFTS</text>
+      <text x="8" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="0.5">FÖRDERUNG</text>
+      <text x="8" y="112" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="0.5">FRANKFURT</text>
+
+      <!-- Skyline -->
+      <g transform="translate(205, 8)">
+        <!-- Airplane silhouette -->
+        <path d="M92 24 L108 15 C111 13 114 13 117 14 L118 15 C118 16 116 18 114 19 L107 23 L119 22 C122 22 124 23 124 24 C124 25 122 26 120 27 L111 29 L97 27 L88 34 C86 35 84 34 84 33 C84 32 85 30 87 29 Z" />
+
+        <!-- Building 1 (Westend / left tower): antenna and body -->
+        <rect x="5" y="56" width="3" height="12" />
+        <rect x="0" y="68" width="18" height="56" rx="0.5" />
+
+        <!-- Building 2 (Messeturm): stepped / pyramid roof and tower -->
+        <polygon points="31,34 23,62 39,62" />
+        <rect x="23" y="62" width="16" height="62" rx="0.5" />
+
+        <!-- Building 3 (Commerzbank / Main Tower): antenna and skyscraper -->
+        <rect x="50" y="10" width="3.5" height="42" />
+        <rect x="43" y="52" width="18" height="72" rx="0.5" />
+
+        <!-- Building 4 (Tower with antenna): antenna and tower -->
+        <rect x="73" y="38" width="2.5" height="24" />
+        <rect x="65" y="62" width="18" height="62" rx="0.5" />
+
+        <!-- Building 5 (Trianon / angled skyscraper): sloped crown and tower -->
+        <polygon points="87,68 105,52 105,124 87,124" />
+      </g>
+    </g>
+  </svg>

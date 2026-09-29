@@ -82,6 +82,76 @@
     "joinOverlayCopy": "Von persönlichen Growth Labs bis zu Investorengipfeln bringt ABCN vielfältige Innovatorinnen und Innovatoren in den Raum, in dem Entscheidungen fallen.",
     "joinVisualAlt": "ABCN-Mitglieder im Gespräch bei einem Community-Treffen"
   },
+  "gallery": {
+    "pill": "Unser Netzwerk in Aktion",
+    "title": "Echte Momente. Echte Wirksamkeit.",
+    "lead": "Einblicke in unsere Frankfurter Kohorten-Workshops, Masterclasses, Pitch-Abende und Dachterrassen-Treffen, die afropäische Innovation lebendig machen.",
+    "pause": "Diashow anhalten",
+    "play": "Diashow abspielen",
+    "prev": "Vorheriges Bild",
+    "next": "Nächstes Bild",
+    "enlarge": "Foto vergrößern",
+    "close": "Vorschau schließen",
+    "slideCounter": "{current} von {total}",
+    "slides": {
+      "cohort": {
+        "kicker": "Hauptkohorte",
+        "location": "Frankfurt am Main",
+        "tag": "25+ Gründer & Führungskräfte",
+        "title": "Diaspora-Gründer & Führungskräfte vereint",
+        "desc": "Über 25 innovative Unternehmerinnen, Tech-Pioniere und Wirtschaftsentscheider versammelt in Frankfurt für strategischen Austausch und gemeinsames Wachstum."
+      },
+      "keynote": {
+        "kicker": "Keynote & Leitung",
+        "location": "Executive Loft · Frankfurt",
+        "tag": "Führung & Strategie",
+        "title": "Workpreneurship & Nachhaltige Skalierung",
+        "desc": "Harmonie Essome über unternehmerische Nachhaltigkeit, tragfähige Geschäftsmodelle und die strategische Positionierung von Diaspora-Unternehmen im europäischen Markt."
+      },
+      "pitch": {
+        "kicker": "Startup-Pitches",
+        "location": "Bühne & Showcase · Frankfurt",
+        "tag": "Live-Pitches",
+        "title": "Türen zu Kapital und Reichweite öffnen",
+        "desc": "Early-Stage-Gründerinnen präsentieren ihre skalierbaren Geschäftsmodelle direkt vor Business Angels, Innovationsverantwortlichen und institutionellen Investoren."
+      },
+      "rooftop": {
+        "kicker": "Dachterrasse Frankfurt",
+        "location": "Rooftop · Bankenviertel Frankfurt",
+        "tag": "Frankfurter Skyline",
+        "title": "Netzwerken über den Dächern Frankfurts",
+        "desc": "Aufbau vertrauensvoller Beziehungen vor der Kulisse der Frankfurter Skyline – Verknüpfung von afrikanischem Erbe mit europäischer Wirtschaftskraft."
+      },
+      "femaleLeaders": {
+        "kicker": "Frauen in Führung",
+        "location": "Gipfel-Saal · Frankfurt",
+        "tag": "FIALI-Initiative",
+        "title": "Internationale Gründerinnen stärken",
+        "desc": "Teilnehmerinnen und Partnerinnen beim abendlichen Netzwerk-Gipfel für chancengerechte Führung in Technologie, Innovation und Wirtschaft."
+      },
+      "workshop": {
+        "kicker": "Growth Lab",
+        "location": "Innovationszentrum · Frankfurt",
+        "tag": "Intensiv-Workshop",
+        "title": "Praxisnahe Strategie & Austausch",
+        "desc": "Gründerinnen in fokussierten Arbeitsphasen: Schärfung von Nutzenversprechen, digitalen Roadmaps und individuellen 90-Tage-Wachstumsplänen."
+      },
+      "reception": {
+        "kicker": "Strategischer Dialog",
+        "location": "Empfang & Networking · Frankfurt",
+        "tag": "Matchmaking",
+        "title": "Austausch auf Augenhöhe mit Entscheidern",
+        "desc": "Direkte Gespräche zwischen aufstrebenden Gründerinnen, Technologie-Experten und Führungspersönlichkeiten aus der gesamten Wirtschaftsregion."
+      },
+      "policy": {
+        "kicker": "Städtischer & Politischer Dialog",
+        "location": "Stadt Frankfurt am Main",
+        "tag": "Politischer Dialog",
+        "title": "Verbindung von Innovation und Stadtpolitik",
+        "desc": "Austausch mit Vertretern der Frankfurter Stadtgesellschaft und Politik zur nachhaltigen Unterstützung und Sichtbarkeit von Diaspora-Unternehmern."
+      }
+    }
+  },
   "about": {
     "pill": "Über uns",
     "titleLine1": "Zwei Orte verbinden,",

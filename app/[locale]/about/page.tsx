@@ -24,9 +24,9 @@ const instagram = "https://www.instagram.com/afropeanbusinessnetwork/";
  * six light sections with a single deep-green slab for the founder.
  */
 const mandateKeys = [
-  { id: "mandate1", image: "/assets/abcn/innovators-summit.jpg" },
-  { id: "mandate2", image: "/assets/abcn/collaborators.png" },
-  { id: "mandate3", image: "/assets/abcn/community-connection.jpg" },
+  { id: "mandate1", image: "/assets/abcn/real/abcn-flagship-cohort.jpg" },
+  { id: "mandate2", image: "/assets/abcn/real/interactive-workshop-session.jpg" },
+  { id: "mandate3", image: "/assets/abcn/real/strategic-networking-reception.jpg" },
 ];
 
 const faqKeys = ["faq1", "faq2", "faq3"];
@@ -145,7 +145,7 @@ export default function AboutPage() {
         <div className="founder-visual">
           <div className="founder-portrait-frame">
             <Img
-              src="/assets/abcn/harmonie-essome-official.jpg"
+              src="/assets/abcn/real/harmonie-essome-keynote-portrait.jpg"
               alt={tf("founderPhotoAlt")}
               className="founder-photo"
             />

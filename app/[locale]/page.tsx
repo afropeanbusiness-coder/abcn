@@ -7,6 +7,7 @@ import FeaturedEventSpotlight from "@/components/FeaturedEventSpotlight";
 import NavExtras from "@/components/NavExtras";
 import SiteFooter from "@/components/SiteFooter";
 import Voices from "@/components/Voices";
+import SlideshowGallery from "@/components/SlideshowGallery";
 import { FIALI_SLUG } from "@/lib/events";
 import Img from "@/components/Img";
 
@@ -15,9 +16,9 @@ const founderInstagram = "https://www.instagram.com/harmonieessome/";
 
 // Format keys; the copy lives in messages/{en,de}.json.
 const formatKeys = [
-  { id: "format1", image: "/assets/abcn/collaborators.png" },
-  { id: "format2", image: "/assets/abcn/innovators-summit.jpg" },
-  { id: "format3", image: "/assets/abcn/community-connection.jpg" },
+  { id: "format1", image: "/assets/abcn/real/executive-keynote-session.jpg" },
+  { id: "format2", image: "/assets/abcn/real/frankfurt-rooftop-cohort.jpg" },
+  { id: "format3", image: "/assets/abcn/real/strategic-networking-reception.jpg" },
   { id: "format4", image: null },
 ];
 
@@ -25,10 +26,11 @@ const formatKeys = [
 const HERO_STRIP_SIZES = "(max-width: 760px) 50vw, 380px";
 
 const images = {
-  hero: "/assets/abcn/innovators-summit.jpg",
-  business: "/assets/abcn/collaborators.png",
-  culture: "/assets/abcn/ecosystem-network.png",
-  community: "/assets/abcn/community-connection.jpg",
+  hero: "/assets/abcn/real/frankfurt-rooftop-cohort.jpg",
+  business: "/assets/abcn/real/strategic-networking-reception.jpg",
+  culture: "/assets/abcn/real/abcn-flagship-cohort.jpg",
+  community: "/assets/abcn/real/interactive-workshop-session.jpg",
+  join: "/assets/abcn/real/abcn-flagship-cohort.jpg",
 };
 
 function Arrow({ down = false }: { down?: boolean }) {
@@ -152,7 +154,7 @@ export default function Home() {
             <Img src={images.hero} alt={t("heroAlt1")} sizes={HERO_STRIP_SIZES} priority />
           </figure>
           <figure>
-            <Img src={images.community} alt={t("heroAlt2")} sizes={HERO_STRIP_SIZES} />
+            <Img src={images.culture} alt={t("heroAlt2")} sizes={HERO_STRIP_SIZES} />
           </figure>
           <figure>
             <Img src={images.business} alt={t("heroAlt3")} sizes={HERO_STRIP_SIZES} />
@@ -289,11 +291,14 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Strategic Live Impressions Slideshow Gallery */}
+      <SlideshowGallery />
+
       <section id="founder" className="section founder">
         <div className="founder-visual">
           <div className="founder-portrait-frame">
             <Img
-              src="/assets/abcn/harmonie-essome-official.jpg"
+              src="/assets/abcn/real/harmonie-essome-keynote-portrait.jpg"
               alt={t("founderPhotoAlt")}
               className="founder-photo"
               sizes="(max-width: 900px) 100vw, 520px"
@@ -368,7 +373,7 @@ export default function Home() {
             photography to stop the inclusive homepage reading as women-only. */}
         <div className="join-visual-frame">
           <Img
-            src={images.community}
+            src={images.join}
             alt={t("joinVisualAlt")}
             className="join-visual-img"
             sizes="(max-width: 900px) 100vw, 620px"

@@ -82,6 +82,76 @@
     "joinOverlayCopy": "From intimate Growth Labs to investor summits, ABCN brings diverse innovators into the room where decisions are made.",
     "joinVisualAlt": "ABCN members in conversation at a community gathering"
   },
+  "gallery": {
+    "pill": "Ecosystem in Action",
+    "title": "Real Moments. Real Momentum.",
+    "lead": "Step inside our Frankfurt cohort sessions, executive masterclasses, investor pitch nights, and skyline gatherings bringing Afropean innovation to life.",
+    "pause": "Pause slideshow",
+    "play": "Play slideshow",
+    "prev": "Previous slide",
+    "next": "Next slide",
+    "enlarge": "View full photo",
+    "close": "Close preview",
+    "slideCounter": "{current} of {total}",
+    "slides": {
+      "cohort": {
+        "kicker": "Flagship Cohort",
+        "location": "Frankfurt am Main",
+        "tag": "25+ Leaders & Founders",
+        "title": "Connecting Diaspora Founders & Executives",
+        "desc": "Innovative entrepreneurs, tech leaders, and corporate decision-makers assembled in Frankfurt for high-impact strategy, collaborative scaling, and peer growth."
+      },
+      "keynote": {
+        "kicker": "Keynote & Direction",
+        "location": "Executive Loft · Frankfurt",
+        "tag": "Leadership & Strategy",
+        "title": "Workpreneurship & Sustainable Scaling",
+        "desc": "Harmonie Essome delivering key insights on business viability, long-term commercial models, and positioning diaspora ventures for European market success."
+      },
+      "pitch": {
+        "kicker": "Startup Pitches",
+        "location": "Showcase Stage · Frankfurt",
+        "tag": "Live Pitching",
+        "title": "Opening Doors to Capital & Visibility",
+        "desc": "Early-stage diaspora founders pitching their scalable business solutions directly to business angels, corporate partners, and institutional investors."
+      },
+      "rooftop": {
+        "kicker": "Skyline Gathering",
+        "location": "Rooftop Terrace · Financial District",
+        "tag": "Frankfurt Horizon",
+        "title": "Golden Hour Over Frankfurt's Horizon",
+        "desc": "Building high-trust peer relationships against the iconic Frankfurt skyline, bridging African heritage with European economic opportunities."
+      },
+      "femaleLeaders": {
+        "kicker": "Female Leadership",
+        "location": "Summit Hall · Frankfurt",
+        "tag": "FIALI Initiative",
+        "title": "Empowering International Female Founders",
+        "desc": "Cohort founders and partners standing together at the evening networking summit, driving inclusive leadership in tech, entrepreneurship, and digital transformation."
+      },
+      "workshop": {
+        "kicker": "Growth Lab",
+        "location": "Innovation Hub · Frankfurt",
+        "tag": "Intensive Workshop",
+        "title": "Hands-On Strategy & Peer Insights",
+        "desc": "Founders engaged in rigorous working sessions sharpening value propositions, digital execution workflows, and actionable 90-day growth roadmaps."
+      },
+      "reception": {
+        "kicker": "Ecosystem Matchmaking",
+        "location": "Executive Reception · Frankfurt",
+        "tag": "Strategic Dialogue",
+        "title": "High-Level Stakeholder Matchmaking",
+        "desc": "Direct, candid dialogues connecting ambitious founders with institutional partners, corporate leaders, and startup champions across the region."
+      },
+      "policy": {
+        "kicker": "Institutional Backing",
+        "location": "Stadt Frankfurt am Main",
+        "tag": "Civic & Policy Dialogue",
+        "title": "Connecting Innovation with City Policy",
+        "desc": "Engaging Frankfurt civic, economic, and political representatives across parties to champion diaspora entrepreneurship and systemic inclusion."
+      }
+    }
+  },
   "about": {
     "pill": "Our story",
     "titleLine1": "Bridging two places",

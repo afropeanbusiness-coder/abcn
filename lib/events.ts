@@ -70,6 +70,8 @@ export type EventRecord = {
   partners: EventPartner[];
   grants: EventGrant;
   gallery: EventGalleryItem[];
+  /** Custom application form; null/absent = the default form. See lib/application-form.ts */
+  application_form?: unknown;
   application_open?: boolean;
   application_deadline?: string | null;
   application_cta?: string | null;
@@ -483,6 +485,7 @@ export function normaliseEvent(
         })
         .filter((item) => item.url && !REMOTE_STOCK.test(item.url));
     })(),
+    application_form: row.application_form ?? null,
     application_open: Boolean(row.application_open),
     application_deadline: pick(r, "application_deadline", locale, base.application_deadline, seeded),
     application_cta: pick(r, "application_cta", locale, base.application_cta || (locale === "de" ? "Jetzt bewerben" : "Apply now"), seeded),

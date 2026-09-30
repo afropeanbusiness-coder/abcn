@@ -692,6 +692,7 @@ export default function EventDetailPage() {
               eventTitle={event.title}
               grants={event.grants}
               applicationDeadline={event.application_deadline}
+              form={event.application_form}
             />
           </div>
         </section>

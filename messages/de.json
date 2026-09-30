@@ -488,7 +488,13 @@
     "errSector": "Bitte wählen Sie Ihre Branche.",
     "errMotivation": "Bitte teilen Sie eine kurze Motivation mit (mindestens 15 Zeichen).",
     "errConsent": "Bitte bestätigen Sie die Datenschutzerklärung vor dem Absenden.",
-    "errSubmit": "Ihre Bewerbung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt per E-Mail."
+    "errSubmit": "Ihre Bewerbung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt per E-Mail.",
+    "errRequired": "Dieses Feld ist erforderlich.",
+    "errUrl": "Bitte geben Sie eine gültige Web-Adresse ein.",
+    "errNumber": "Bitte geben Sie eine Zahl ein.",
+    "errDate": "Bitte wählen Sie ein gültiges Datum.",
+    "errOption": "Bitte wählen Sie eine der angebotenen Optionen.",
+    "errTooShort": "Bitte schreiben Sie mindestens {min} Zeichen."
   },
   "eventsList": {
     "eyeline": "ABCN · Veranstaltungen & Programme",

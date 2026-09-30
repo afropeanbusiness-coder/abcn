@@ -13,10 +13,12 @@ import {
 } from "@/lib/events";
 import "@/app/[locale]/admin/admin.css";
 import SlideshowManager from "@/components/SlideshowManager";
+import FormBuilder from "@/components/FormBuilder";
+import { parseForm, type ApplicationForm } from "@/lib/application-form";
 
 type Mode = "checking" | "signed-out" | "needs-admin" | "admin";
 type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media";
-type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "applicants";
+type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "form" | "applicants";
 type Editable = EventRecord & { id?: string };
 type AdminTheme = "dark" | "light";
 
@@ -53,6 +55,7 @@ type ApplicationRow = {
   referral_source?: string | null;
   status: string;
   admin_notes?: string | null;
+  answers?: Record<string, { label: string; value: unknown }> | null;
   submitted_at: string;
 };
 
@@ -64,7 +67,8 @@ const SECTIONS: { id: EditorTab; label: string; shortLabel: string; num: string 
   { id: "stages", label: "Programme Stages & Grants", shortLabel: "Stages", num: "05" },
   { id: "partners", label: "Partners & Logo Manager", shortLabel: "Partners", num: "06" },
   { id: "german", label: "German Translation", shortLabel: "German (DE)", num: "07" },
-  { id: "applicants", label: "Event Applicants", shortLabel: "Applicants", num: "08" },
+  { id: "form", label: "Application Form", shortLabel: "Form", num: "08" },
+  { id: "applicants", label: "Event Applicants", shortLabel: "Applicants", num: "09" },
 ];
 
 const blankEvent = (): Editable => ({
@@ -642,6 +646,7 @@ export default function EventsAdminPage() {
       "Submitted Date",
       "Motivation",
       "Admin Notes",
+      "Custom answers",
     ];
     const rows = list.map((a) => [
       `"${(a.first_name || "").replace(/"/g, '""')}"`,
@@ -657,6 +662,10 @@ export default function EventsAdminPage() {
       `"${new Date(a.submitted_at).toISOString()}"`,
       `"${(a.motivation || "").replace(/"/g, '""')}"`,
       `"${(a.admin_notes || "").replace(/"/g, '""')}"`,
+      `"${Object.values(a.answers || {})
+        .map((x: any) => `${x.label}: ${Array.isArray(x.value) ? x.value.join(" | ") : typeof x.value === "boolean" ? (x.value ? "Yes" : "No") : x.value}`)
+        .join("\n")
+        .replace(/"/g, '""')}"`,
     ]);
     const csvContent =
       "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -940,6 +949,33 @@ export default function EventsAdminPage() {
     const current = [...(form.partners || [])];
     current[index] = { ...current[index], ...updated };
     update("partners", current);
+  }
+
+  // Saves only the application form, straight to the database.
+  async function saveApplicationForm(next: ApplicationForm | null) {
+    if (!selectedId) {
+      showToast("The form will be saved when you save the new event.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/events", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedId, application_form: next }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.error || `Could not save the form (HTTP ${res.status}). Nothing was changed.`);
+      }
+      setEvents((prev) => prev.map((ev) => (ev.id === selectedId ? { ...ev, application_form: next } : ev)));
+      update("application_form", next);
+      showToast(next ? "Application form saved. It is live within a minute." : "Reset to the default application form.");
+    } catch (err: any) {
+      showToast(err.message || "Could not save the form", "error");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function removePartner(index: number) {
@@ -2935,7 +2971,21 @@ export default function EventsAdminPage() {
                   </div>
                 )}
 
-                {/* TAB 7: APPLICANTS FOR THIS EVENT */}
+                {/* TAB 8: APPLICATION FORM BUILDER */}
+                {editorTab === "form" && (
+                  <FormBuilder
+                    value={parseForm(form.application_form)}
+                    saved={parseForm(events.find((e) => e.id === selectedId)?.application_form)}
+                    hasGrants={Boolean(form.grants?.title || form.grants?.amount_each)}
+                    canSaveNow={Boolean(selectedId)}
+                    saving={saving}
+                    notify={showToast}
+                    onChange={(next) => update("application_form", next)}
+                    onSave={(next) => saveApplicationForm(next)}
+                  />
+                )}
+
+                {/* TAB 9: APPLICANTS FOR THIS EVENT */}
                 {editorTab === "applicants" && selectedId && (
                   <div className="cms-pipeline-wrap">
                     <div className="cms-pipeline-head">
@@ -3526,6 +3576,32 @@ export default function EventsAdminPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Custom questions added through the form builder */}
+                  {selectedApplicant.answers && Object.keys(selectedApplicant.answers).length > 0 && (
+                    <div className="cms-dossier-card">
+                      <div className="cms-dossier-card-head">
+                        <h3 className="cms-dossier-card-title">
+                          <span>📋</span> Additional Application Answers
+                        </h3>
+                        <span className="cms-dossier-badge">Custom form</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+                        {Object.entries(selectedApplicant.answers).map(([id, a]: [string, any]) => (
+                          <div key={id}>
+                            <div style={{ fontSize: "0.78rem", color: "var(--cms-text-muted)", marginBottom: 2 }}>{a.label}</div>
+                            <div className="cms-dossier-prose" style={{ whiteSpace: "pre-wrap" }}>
+                              {Array.isArray(a.value)
+                                ? a.value.join(", ") || "—"
+                                : typeof a.value === "boolean"
+                                ? a.value ? "Yes" : "No"
+                                : String(a.value || "—")}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* 4. Internal Reviewer Notes & Decision Center */}
                   <div className="cms-dossier-card" style={{ borderColor: "rgba(88, 172, 140, 0.35)" }}>

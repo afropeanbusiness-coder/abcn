@@ -488,7 +488,13 @@
     "errSector": "Please select your sector.",
     "errMotivation": "Please share a brief motivation (minimum 15 characters).",
     "errConsent": "Please confirm that you have read the privacy notice before submitting.",
-    "errSubmit": "We could not submit your application. Please try again, or email us directly."
+    "errSubmit": "We could not submit your application. Please try again, or email us directly.",
+    "errRequired": "This field is required.",
+    "errUrl": "Please enter a valid web address.",
+    "errNumber": "Please enter a number.",
+    "errDate": "Please choose a valid date.",
+    "errOption": "Please choose one of the listed options.",
+    "errTooShort": "Please write at least {min} characters."
   },
   "eventsList": {
     "eyeline": "ABCN · Events & programmes",

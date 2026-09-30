@@ -1,8 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { getPathname, type Locale } from "@/i18n/routing";
+import {
+  allFields,
+  buildDefaultForm,
+  displayValue,
+  initialValues,
+  parseForm,
+  pickText,
+  validateFields,
+  type AnswerValue,
+  type Answers,
+  type ApplicationForm,
+  type FormField,
+} from "@/lib/application-form";
 
 type Props = {
   eventId?: string;
@@ -10,42 +23,19 @@ type Props = {
   eventTitle: string;
   grants?: { count?: number; amount_each?: string; title?: string } | null;
   applicationDeadline?: string | null;
+  /** The event's custom form from the CMS; null/undefined = the default form. */
+  form?: unknown;
 };
 
-interface FormData {
-  firstName: string;
-  lastName: string;
-  jobTitle: string;
-  location: string;
-  country: string;
-  email: string;
-  phone: string;
-  companyName: string;
-  companyUrl: string;
-  sector: string;
-  stage: string;
-  motivation: string;
-  aiFocus: string;
-  grantInterest: string;
-  consent: boolean;
-}
-
-const initialData: FormData = {
-  firstName: "",
-  lastName: "",
-  jobTitle: "",
-  location: "Frankfurt am Main",
-  country: "DE",
-  email: "",
-  phone: "",
-  companyName: "",
-  companyUrl: "",
-  sector: "Technology & Software (IT, SaaS, Digital)",
-  stage: "Idea stage (not founded yet)",
-  motivation: "",
-  aiFocus: "",
-  grantInterest: "Yes, interested in the grant",
-  consent: false,
+// Existing translated messages for the standard fields' errors.
+const CORE_ERR_KEYS: Record<string, string> = {
+  firstName: "errFirstName",
+  lastName: "errLastName",
+  jobTitle: "errJobTitle",
+  email: "errEmail",
+  companyName: "errCompanyName",
+  sector: "errSector",
+  motivation: "errMotivation",
 };
 
 export default function MultiStepApplication({
@@ -53,60 +43,78 @@ export default function MultiStepApplication({
   eventSlug,
   eventTitle,
   grants,
+  form: customForm,
 }: Props) {
   const locale = useLocale();
   const t = useTranslations("application");
   // Localized URL for the privacy notice (/privacy or /de/datenschutz).
   const privacyHref = getPathname({ href: "/privacy", locale: locale as Locale });
+
+  const hasGrants = Boolean(grants?.title || grants?.amount_each);
+  const form: ApplicationForm = useMemo(
+    () => parseForm(customForm) ?? buildDefaultForm(hasGrants),
+    [customForm, hasGrants]
+  );
+  const steps = form.steps;
+  const reviewStep = steps.length + 1; // fixed final step: review + consent
+
   const [step, setStep] = useState<number>(1);
-  const [formData, setFormData] = useState<FormData>(initialData);
+  const [values, setValues] = useState<Answers>(() => initialValues(form));
+  const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string>("");
 
-  const hasGrants = Boolean(grants?.title || grants?.amount_each);
+  const txt = (en?: string, de?: string) =>
+    pickText(en, de, locale).replace(/\{eventTitle\}/g, eventTitle);
+  const valueOf = (core: string): string => {
+    const f = allFields(form).find((x) => x.core === core);
+    return f ? String(values[f.id] ?? "") : "";
+  };
 
-  const updateField = (field: keyof FormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+  const setValue = (id: string, value: AnswerValue) => {
+    setValues((prev) => ({ ...prev, [id]: value }));
+    if (errors[id]) {
       setErrors((prev) => {
         const next = { ...prev };
-        delete next[field];
+        delete next[id];
         return next;
       });
     }
   };
 
+  const errorText = (field: FormField, code: string): string => {
+    if (field.core && CORE_ERR_KEYS[field.core] && (code === "required" || code === "email" || code === "tooShort")) {
+      return t(CORE_ERR_KEYS[field.core] as any);
+    }
+    const generic: Record<string, string> = {
+      required: t("errRequired"),
+      email: t("errEmail"),
+      url: t("errUrl"),
+      number: t("errNumber"),
+      date: t("errDate"),
+      option: t("errOption"),
+      tooShort: t("errTooShort", { min: field.minLength ?? 0 }),
+    };
+    return generic[code] || t("errRequired");
+  };
+
   const validateStep = (currentStep: number): boolean => {
     const err: Record<string, string> = {};
-    if (currentStep === 1) {
-      if (!formData.firstName.trim()) err.firstName = t("errFirstName");
-      if (!formData.lastName.trim()) err.lastName = t("errLastName");
-      if (!formData.jobTitle.trim()) err.jobTitle = t("errJobTitle");
-      if (!formData.email.trim() || !formData.email.includes("@")) {
-        err.email = t("errEmail");
-      }
-    } else if (currentStep === 2) {
-      if (!formData.companyName.trim()) err.companyName = t("errCompanyName");
-      if (!formData.sector.trim()) err.sector = t("errSector");
-    } else if (currentStep === 3) {
-      if (!formData.motivation.trim() || formData.motivation.trim().length < 15) {
-        err.motivation = t("errMotivation");
-      }
-    } else if (currentStep === 4) {
-      if (!formData.consent) {
-        err.consent = t("errConsent");
-      }
+    if (currentStep <= steps.length) {
+      const fields = steps[currentStep - 1].fields;
+      const found = validateFields(fields, values);
+      for (const f of fields) if (found[f.id]) err[f.id] = errorText(f, found[f.id]);
+    } else if (!consent) {
+      err.consent = t("errConsent");
     }
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
   const handleNext = () => {
-    if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, 4));
-    }
+    if (validateStep(step)) setStep((s) => Math.min(s + 1, reviewStep));
   };
 
   const handlePrev = () => {
@@ -115,12 +123,20 @@ export default function MultiStepApplication({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(4)) return;
+    if (!validateStep(reviewStep)) return;
 
     setSubmitError("");
     setIsSubmitting(true);
 
     try {
+      // Standard fields go in their own named properties; everything else in
+      // `answers`. The server re-validates against the stored form.
+      const core: Record<string, unknown> = {};
+      const answers: Answers = {};
+      for (const f of allFields(form)) {
+        if (f.core) core[f.core] = values[f.id];
+        else answers[f.id] = values[f.id];
+      }
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: {
@@ -129,22 +145,11 @@ export default function MultiStepApplication({
         body: JSON.stringify({
           eventId,
           eventSlug,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          jobTitle: formData.jobTitle,
-          email: formData.email,
-          phone: formData.phone,
-          location: formData.location,
-          country: formData.country || "DE",
-          companyName: formData.companyName,
-          companyUrl: formData.companyUrl,
-          sector: formData.sector,
-          stage: formData.stage,
-          aiFocus: formData.aiFocus,
-          motivation: formData.motivation,
-          grantInterest: formData.grantInterest,
+          ...core,
+          country: "DE",
+          answers,
           referralSource: "",
-          consent: formData.consent,
+          consent,
         }),
       });
 
@@ -161,11 +166,9 @@ export default function MultiStepApplication({
     }
   };
 
-  const steps = [
-    { num: "01", label: t("step1Label") },
-    { num: "02", label: t("step2Label") },
-    { num: "03", label: t("step3Label") },
-    { num: "04", label: t("step4Label") },
+  const indicator = [
+    ...steps.map((st, i) => ({ num: String(i + 1).padStart(2, "0"), label: txt(st.label, st.label_de) })),
+    { num: String(reviewStep).padStart(2, "0"), label: t("step4Label") },
   ];
 
   if (isSubmitted) {
@@ -206,8 +209,8 @@ export default function MultiStepApplication({
         </h3>
         <p style={{ color: "#b9c7d4", fontSize: "0.85rem", maxWidth: "540px", margin: "0 auto 20px", lineHeight: "1.6" }}>
           {t("successBody", {
-            name: formData.firstName,
-            company: formData.companyName || (locale === "de" ? "Ihr Unternehmen" : "your venture")
+            name: valueOf("firstName"),
+            company: valueOf("companyName") || (locale === "de" ? "Ihr Unternehmen" : "your venture")
           })}
         </p>
         <div style={{
@@ -222,14 +225,15 @@ export default function MultiStepApplication({
           textAlign: "left",
           lineHeight: "1.6"
         }}>
-          <div>• {t("replyTo")} <strong style={{ color: "#fff" }}>{formData.email}</strong></div>
+          <div>• {t("replyTo")} <strong style={{ color: "#fff" }}>{valueOf("email")}</strong></div>
           <div>• {t("programme")} <strong style={{ color: "#E09000" }}>{eventTitle}</strong></div>
           <div>• {t("questions")} <span style={{ color: "#fff" }}>harmonie.essome@softxcloud.net</span></div>
         </div>
         <button
           type="button"
           onClick={() => {
-            setFormData(initialData);
+            setValues(initialValues(form));
+            setConsent(false);
             setStep(1);
             setIsSubmitted(false);
           }}
@@ -248,7 +252,7 @@ export default function MultiStepApplication({
       <div className="wizard-content">
         {/* Step Indicator Header */}
         <div className="wizard-steps-header">
-          {steps.map((s, idx) => {
+          {indicator.map((s, idx) => {
             const stepIndex = idx + 1;
             const isActive = step === stepIndex;
             const isPast = step > stepIndex;
@@ -271,227 +275,33 @@ export default function MultiStepApplication({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} noValidate>
-          {/* STEP 1: Personal Profile */}
-          {step === 1 && (
+          {step <= steps.length && (
             <div>
               <div className="wizard-heading-group">
-                <h3>{t("step1Title")}</h3>
-                <p>{t("step1Subtitle")}</p>
+                <h3>{txt(steps[step - 1].title, steps[step - 1].title_de)}</h3>
+                {(steps[step - 1].subtitle || steps[step - 1].subtitle_de) && (
+                  <p>{txt(steps[step - 1].subtitle, steps[step - 1].subtitle_de)}</p>
+                )}
               </div>
 
               <div className="wizard-form-grid">
-                <div className="wizard-field">
-                  <label>
-                    {t("firstName")} <span className="req">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => updateField("firstName", e.target.value)}
-                    placeholder={t("firstNamePlaceholder")}
+                {steps[step - 1].fields.map((field) => (
+                  <FieldInput
+                    key={field.id}
+                    field={field}
+                    value={values[field.id]}
+                    error={errors[field.id]}
+                    onChange={(v) => setValue(field.id, v)}
+                    txt={txt}
+                    optionalLabel={t("optional")}
                   />
-                  {errors.firstName && <div className="wizard-err">{errors.firstName}</div>}
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("lastName")} <span className="req">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => updateField("lastName", e.target.value)}
-                    placeholder={t("lastNamePlaceholder")}
-                  />
-                  {errors.lastName && <div className="wizard-err">{errors.lastName}</div>}
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("jobTitle")} <span className="req">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.jobTitle}
-                    onChange={(e) => updateField("jobTitle", e.target.value)}
-                    placeholder={t("jobTitlePlaceholder")}
-                  />
-                  {errors.jobTitle && <div className="wizard-err">{errors.jobTitle}</div>}
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("location")} <span className="req">*</span>
-                  </label>
-                  <select
-                    value={formData.location}
-                    onChange={(e) => {
-                      updateField("location", e.target.value);
-                      updateField("country", "DE");
-                    }}
-                  >
-                    <option value="Frankfurt am Main">{t("locationFrankfurt")}</option>
-                    <option value="Rhein-Main Region">{t("locationRheinMain")}</option>
-                  </select>
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("email")} <span className="req">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                    placeholder={t("emailPlaceholder")}
-                  />
-                  {errors.email && <div className="wizard-err">{errors.email}</div>}
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("phone")} <span className="opt">{t("optional")}</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    placeholder={t("phonePlaceholder")}
-                  />
-                </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* STEP 2: Venture & Innovation */}
-          {step === 2 && (
-            <div>
-              <div className="wizard-heading-group">
-                <h3>{t("step2Title")}</h3>
-                <p>{t("step2Subtitle")}</p>
-              </div>
-
-              <div className="wizard-form-grid">
-                <div className="wizard-field">
-                  <label>
-                    {t("companyName")} <span className="req">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.companyName}
-                    onChange={(e) => updateField("companyName", e.target.value)}
-                    placeholder={t("companyNamePlaceholder")}
-                  />
-                  {errors.companyName && <div className="wizard-err">{errors.companyName}</div>}
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("companyUrl")} <span className="opt">{t("optional")}</span>
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.companyUrl}
-                    onChange={(e) => updateField("companyUrl", e.target.value)}
-                    placeholder={t("companyUrlPlaceholder")}
-                  />
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("sector")} <span className="req">*</span>
-                  </label>
-                  <select
-                    value={formData.sector}
-                    onChange={(e) => updateField("sector", e.target.value)}
-                  >
-                    <option value="Technology & Software (IT, SaaS, Digital)">{t("sectorTech")}</option>
-                    <option value="Consulting & Professional Services">{t("sectorServices")}</option>
-                    <option value="Retail, E-Commerce & Consumer Goods">{t("sectorCommerce")}</option>
-                    <option value="Creative Industries, Media & Design">{t("sectorCreative")}</option>
-                    <option value="Health, Care & Life Sciences">{t("sectorHealth")}</option>
-                    <option value="Finance, Insurance & FinTech">{t("sectorFintech")}</option>
-                    <option value="Food, Gastronomy & Hospitality">{t("sectorFood")}</option>
-                    <option value="Education, Coaching & HR">{t("sectorEdtech")}</option>
-                    <option value="Sustainability, Climate & GreenTech">{t("sectorSustainability")}</option>
-                    <option value="Social Impact & Community Venture">{t("sectorSocial")}</option>
-                    <option value="Other / Cross-Sector Industry">{t("sectorOther")}</option>
-                  </select>
-                </div>
-
-                <div className="wizard-field">
-                  <label>
-                    {t("stage")} <span className="req">*</span>
-                  </label>
-                  <select
-                    value={formData.stage}
-                    onChange={(e) => updateField("stage", e.target.value)}
-                  >
-                    <option value="Idea stage (not founded yet)">{t("stageIdea")}</option>
-                    <option value="In incorporation / Preparing launch">{t("stageIncorporation")}</option>
-                    <option value="Founded already (Building prototype / MVP)">{t("stageMvp")}</option>
-                    <option value="Already in business (Early customers / revenue)">{t("stageEarlyRev")}</option>
-                    <option value="Established business (Scaling & growth phase)">{t("stageGrowth")}</option>
-                    <option value="Bootstrapped & profitable">{t("stageProfitable")}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: Motivation & Focus */}
-          {step === 3 && (
-            <div>
-              <div className="wizard-heading-group">
-                <h3>{t("step3Title")}</h3>
-                <p>{t("step3Subtitle")}</p>
-              </div>
-
-              <div className="wizard-form-grid">
-                <div className="wizard-field full-span">
-                  <label>
-                    {t("motivationLabel", { eventTitle })} <span className="req">*</span>
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={formData.motivation}
-                    onChange={(e) => updateField("motivation", e.target.value)}
-                    placeholder={t("motivationPlaceholder")}
-                  />
-                  {errors.motivation && <div className="wizard-err">{errors.motivation}</div>}
-                </div>
-
-                <div className="wizard-field full-span">
-                  <label>
-                    {t("aiFocusLabel")}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.aiFocus}
-                    onChange={(e) => updateField("aiFocus", e.target.value)}
-                    placeholder={t("aiFocusPlaceholder")}
-                  />
-                </div>
-
-                <div className="wizard-field full-span">
-                  <label>
-                    {hasGrants ? t("grantInterestLabel") : t("grantInterestGeneralLabel")}
-                  </label>
-                  <select
-                    value={formData.grantInterest}
-                    onChange={(e) => updateField("grantInterest", e.target.value)}
-                  >
-                    <option value="Yes, interested in the grant">{t("grantOption1")}</option>
-                    <option value="Focusing on ecosystem networking & mentorship">{t("grantOption2")}</option>
-                    <option value="Interested in both">{t("grantOption3")}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Review & Confirm */}
-          {step === 4 && (
+          {/* Final step: review everything + consent */}
+          {step === reviewStep && (
             <div>
               <div className="wizard-heading-group">
                 <h3>{t("step4Title")}</h3>
@@ -499,48 +309,31 @@ export default function MultiStepApplication({
               </div>
 
               <div className="wizard-review-card">
-                <div className="wizard-review-row">
-                  <div className="wizard-review-item">
-                    <span>{t("applicant")}</span>
-                    <strong>{formData.firstName} {formData.lastName}</strong>
-                    <em>{formData.jobTitle}</em>
+                {steps.map((st) => (
+                  <div key={st.id} style={{ marginBottom: "14px" }}>
+                    <div className="wizard-review-row" style={{ flexWrap: "wrap", borderBottom: "none", paddingBottom: 0 }}>
+                      {st.fields.map((f) => (
+                        <div className="wizard-review-item" key={f.id} style={{ minWidth: "45%" }}>
+                          <span>{txt(f.label, f.label_de)}</span>
+                          <strong style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                            {displayValue(f, values[f.id], locale)}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="wizard-review-item">
-                    <span>{t("contact")}</span>
-                    <strong>{formData.email}</strong>
-                    <em>{formData.phone || t("noPhone")}</em>
-                  </div>
-                </div>
-
-                <div className="wizard-review-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
-                  <div className="wizard-review-item">
-                    <span>{t("venture")}</span>
-                    <strong>{formData.companyName}</strong>
-                    <em>{formData.sector}</em>
-                  </div>
-                  <div className="wizard-review-item">
-                    <span>{t("stageCountry")}</span>
-                    <strong>{formData.stage}</strong>
-                    <em>{formData.location || "Frankfurt am Main"}</em>
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(0,0,0,0.25)", padding: "12px 14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ fontSize: "0.68rem", color: "#7b94a8", display: "block", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>
-                    {t("motivationExcerpt")}
-                  </span>
-                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#d1dde6", fontStyle: "italic" }}>
-                    &ldquo;{formData.motivation}&rdquo;
-                  </p>
-                </div>
+                ))}
               </div>
 
               <div style={{ marginTop: "14px" }}>
                 <label className="gdpr-consent-label">
                   <input
                     type="checkbox"
-                    checked={formData.consent}
-                    onChange={(e) => updateField("consent", e.target.checked)}
+                    checked={consent}
+                    onChange={(e) => {
+                      setConsent(e.target.checked);
+                      if (errors.consent) setErrors({});
+                    }}
                   />
                   <span>
                     {t("consentText")}{" "}
@@ -592,13 +385,13 @@ export default function MultiStepApplication({
               <div />
             )}
 
-            {step < 4 ? (
+            {step < reviewStep ? (
               <button
                 type="button"
                 onClick={handleNext}
                 className="wizard-btn-next"
               >
-                {t("nextBtn", { step: steps[step]?.label || "" })}
+                {t("nextBtn", { step: indicator[step]?.label || "" })}
               </button>
             ) : (
               <button
@@ -612,6 +405,112 @@ export default function MultiStepApplication({
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function FieldInput({
+  field,
+  value,
+  error,
+  onChange,
+  txt,
+  optionalLabel,
+}: {
+  field: FormField;
+  value: AnswerValue | undefined;
+  error?: string;
+  onChange: (v: AnswerValue) => void;
+  txt: (en?: string, de?: string) => string;
+  optionalLabel: string;
+}) {
+  const id = `f-${field.id}`;
+  const label = txt(field.label, field.label_de);
+  const placeholder = txt(field.placeholder, field.placeholder_de) || undefined;
+  const help = txt(field.help, field.help_de);
+  const options = field.options || [];
+  const str = typeof value === "string" ? value : "";
+  const span = field.width === "full" || field.type === "textarea" ? " full-span" : "";
+
+  let control: React.ReactNode;
+  switch (field.type) {
+    case "textarea":
+      control = <textarea id={id} rows={4} value={str} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />;
+      break;
+    case "select":
+      control = (
+        <select id={id} value={str} onChange={(e) => onChange(e.target.value)}>
+          {!options.some((o) => o.value === str) && <option value="">—</option>}
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {txt(o.label, o.label_de)}
+            </option>
+          ))}
+        </select>
+      );
+      break;
+    case "radio":
+      control = (
+        <div role="radiogroup" aria-labelledby={`${id}-l`} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {options.map((o) => (
+            <label key={o.value} style={{ display: "flex", gap: "8px", alignItems: "center", cursor: "pointer" }}>
+              <input type="radio" name={id} checked={str === o.value} onChange={() => onChange(o.value)} />
+              <span>{txt(o.label, o.label_de)}</span>
+            </label>
+          ))}
+        </div>
+      );
+      break;
+    case "checkboxes": {
+      const arr = Array.isArray(value) ? value : [];
+      control = (
+        <div role="group" aria-labelledby={`${id}-l`} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {options.map((o) => (
+            <label key={o.value} style={{ display: "flex", gap: "8px", alignItems: "center", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={arr.includes(o.value)}
+                onChange={(e) => onChange(e.target.checked ? [...arr, o.value] : arr.filter((x) => x !== o.value))}
+              />
+              <span>{txt(o.label, o.label_de)}</span>
+            </label>
+          ))}
+        </div>
+      );
+      break;
+    }
+    case "checkbox":
+      control = (
+        <label style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer" }}>
+          <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />
+          <span>{label}</span>
+        </label>
+      );
+      break;
+    default:
+      control = (
+        <input
+          id={id}
+          type={field.type}
+          inputMode={field.type === "number" ? "decimal" : undefined}
+          value={str}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
+  }
+
+  return (
+    <div className={`wizard-field${span}`}>
+      {field.type !== "checkbox" && (
+        <label id={`${id}-l`} htmlFor={id}>
+          {label}{" "}
+          {field.required ? <span className="req">*</span> : <span className="opt">{optionalLabel}</span>}
+        </label>
+      )}
+      {control}
+      {help && <div style={{ fontSize: "0.74rem", opacity: 0.7, marginTop: "4px" }}>{help}</div>}
+      {error && <div className="wizard-err">{error}</div>}
     </div>
   );
 }

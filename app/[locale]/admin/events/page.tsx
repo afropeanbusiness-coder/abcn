@@ -12,9 +12,10 @@ import {
   normaliseEvent,
 } from "@/lib/events";
 import "@/app/[locale]/admin/admin.css";
+import SlideshowManager from "@/components/SlideshowManager";
 
 type Mode = "checking" | "signed-out" | "needs-admin" | "admin";
-type MainTab = "events" | "pipeline" | "partners" | "media";
+type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media";
 type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "applicants";
 type Editable = EventRecord & { id?: string };
 type AdminTheme = "dark" | "light";
@@ -1404,6 +1405,15 @@ export default function EventsAdminPage() {
 
           <button
             type="button"
+            className={`cms-sidebar-item ${mainTab === "slideshow" ? "active" : ""}`}
+            onClick={() => setMainTab("slideshow")}
+          >
+            <span className="cms-nav-icon">🎞️</span>
+            <span className="cms-nav-text">Homepage Slideshow</span>
+          </button>
+
+          <button
+            type="button"
             className={`cms-sidebar-item ${mainTab === "media" ? "active" : ""}`}
             onClick={() => setMainTab("media")}
           >
@@ -1481,6 +1491,7 @@ export default function EventsAdminPage() {
                 {mainTab === "events" && "Events & Summit Management"}
                 {mainTab === "pipeline" && "Founder Application CRM"}
                 {mainTab === "partners" && "Website Partners & Collaborator Network"}
+                {mainTab === "slideshow" && "Homepage Slideshow"}
                 {mainTab === "media" && "Media & Global Asset Manager"}
               </h1>
               <span>Executive Control Room · ABCN</span>
@@ -4022,6 +4033,8 @@ export default function EventsAdminPage() {
         {/* =========================================================================
             VIEW 4: MEDIA & GLOBAL ASSET LIBRARY
             ========================================================================= */}
+        {mainTab === "slideshow" && <SlideshowManager notify={showToast} />}
+
         {mainTab === "media" && (
           <div className="cms-panel" style={{ padding: "1.5rem" }}>
             <div style={{ paddingBottom: "1rem", borderBottom: "1px solid var(--cms-border)" }}>

@@ -1,117 +1,79 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Img from "@/components/Img";
 import styles from "./SlideshowGallery.module.css";
 
 export interface GallerySlide {
   id: string;
   image: string;
-  width: number;
-  height: number;
-  kickerKey: string;
-  locationKey: string;
-  tagKey: string;
-  titleKey: string;
-  descKey: string;
+  kicker: string;
+  location: string;
+  tag: string;
+  title: string;
+  desc: string;
 }
 
-const SLIDES: GallerySlide[] = [
-  {
-    id: "alumni",
-    image: "/assets/abcn/events/alumni-community-group.jpg",
-    width: 2000,
-    height: 1333,
-    kickerKey: "slides.alumni.kicker",
-    locationKey: "slides.alumni.location",
-    tagKey: "slides.alumni.tag",
-    titleKey: "slides.alumni.title",
-    descKey: "slides.alumni.desc",
-  },
-  {
-    id: "fireside",
-    image: "/assets/abcn/events/fireside-stage-keynote.jpg",
-    width: 2000,
-    height: 1333,
-    kickerKey: "slides.fireside.kicker",
-    locationKey: "slides.fireside.location",
-    tagKey: "slides.fireside.tag",
-    titleKey: "slides.fireside.title",
-    descKey: "slides.fireside.desc",
-  },
-  {
-    id: "salesLab",
-    image: "/assets/abcn/events/sales-elevate-lab-certificates.jpg",
-    width: 1600,
-    height: 2000,
-    kickerKey: "slides.salesLab.kicker",
-    locationKey: "slides.salesLab.location",
-    tagKey: "slides.salesLab.tag",
-    titleKey: "slides.salesLab.title",
-    descKey: "slides.salesLab.desc",
-  },
-  {
-    id: "rooftop",
-    image: "/assets/abcn/events/rooftop-terrace-group.jpg",
-    width: 1227,
-    height: 1534,
-    kickerKey: "slides.rooftop.kicker",
-    locationKey: "slides.rooftop.location",
-    tagKey: "slides.rooftop.tag",
-    titleKey: "slides.rooftop.title",
-    descKey: "slides.rooftop.desc",
-  },
-  {
-    id: "networking",
-    image: "/assets/abcn/events/networking-evening-group.jpg",
-    width: 2000,
-    height: 1328,
-    kickerKey: "slides.networking.kicker",
-    locationKey: "slides.networking.location",
-    tagKey: "slides.networking.tag",
-    titleKey: "slides.networking.title",
-    descKey: "slides.networking.desc",
-  },
-  {
-    id: "peerCircle",
-    image: "/assets/abcn/events/peer-circle-women.jpg",
-    width: 1600,
-    height: 2000,
-    kickerKey: "slides.peerCircle.kicker",
-    locationKey: "slides.peerCircle.location",
-    tagKey: "slides.peerCircle.tag",
-    titleKey: "slides.peerCircle.title",
-    descKey: "slides.peerCircle.desc",
-  },
-  {
-    id: "roundtable",
-    image: "/assets/abcn/events/roundtable-discussion.jpg",
-    width: 1500,
-    height: 2000,
-    kickerKey: "slides.roundtable.kicker",
-    locationKey: "slides.roundtable.location",
-    tagKey: "slides.roundtable.tag",
-    titleKey: "slides.roundtable.title",
-    descKey: "slides.roundtable.desc",
-  },
-  {
-    id: "womensDay",
-    image: "/assets/abcn/events/international-womens-day.jpg",
-    width: 607,
-    height: 1080,
-    kickerKey: "slides.womensDay.kicker",
-    locationKey: "slides.womensDay.location",
-    tagKey: "slides.womensDay.tag",
-    titleKey: "slides.womensDay.title",
-    descKey: "slides.womensDay.desc",
-  },
+/**
+ * The slideshow is managed in the CMS (Slideshow tab) and read from
+ * /api/slides. These bundled slides, whose text lives in messages/{en,de}.json,
+ * are used only when the database cannot be reached. An empty CMS list is a
+ * real answer and shows no slideshow, so deleted slides never come back.
+ */
+const FALLBACK_SLIDES = [
+  { id: "alumni", image: "/assets/abcn/events/alumni-community-group.jpg" },
+  { id: "fireside", image: "/assets/abcn/events/fireside-stage-keynote.jpg" },
+  { id: "salesLab", image: "/assets/abcn/events/sales-elevate-lab-certificates.jpg" },
+  { id: "rooftop", image: "/assets/abcn/events/rooftop-terrace-group.jpg" },
+  { id: "networking", image: "/assets/abcn/events/networking-evening-group.jpg" },
+  { id: "peerCircle", image: "/assets/abcn/events/peer-circle-women.jpg" },
+  { id: "roundtable", image: "/assets/abcn/events/roundtable-discussion.jpg" },
+  { id: "womensDay", image: "/assets/abcn/events/international-womens-day.jpg" },
 ];
 
 const AUTOPLAY_INTERVAL = 6500; // 6.5s per slide
 
 export default function SlideshowGallery() {
   const t = useTranslations("gallery");
+  const locale = useLocale();
+  // null = still loading; nothing is shown until the CMS has answered, so a
+  // slide an editor removed is never flashed from a default.
+  const [slides, setSlides] = useState<GallerySlide[] | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/slides?locale=${locale}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!live) return;
+        if (json?.success && Array.isArray(json.data)) {
+          setSlides(json.data);
+        } else {
+          throw new Error("bad response");
+        }
+      })
+      .catch(() => {
+        if (!live) return;
+        setSlides(
+          FALLBACK_SLIDES.map((f) => ({
+            id: f.id,
+            image: f.image,
+            kicker: t(`slides.${f.id}.kicker` as any),
+            location: t(`slides.${f.id}.location` as any),
+            tag: t(`slides.${f.id}.tag` as any),
+            title: t(`slides.${f.id}.title` as any),
+            desc: t(`slides.${f.id}.desc` as any),
+          }))
+        );
+      });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
+
+  const SLIDES: GallerySlide[] = slides ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -123,10 +85,10 @@ export default function SlideshowGallery() {
   const touchEndXRef = useRef<number | null>(null);
 
   const totalSlides = SLIDES.length;
-  const currentSlide = SLIDES[currentIndex];
+  const currentSlide = SLIDES[currentIndex] ?? SLIDES[0];
 
   const goToSlide = useCallback((index: number) => {
-    setCurrentIndex((index + totalSlides) % totalSlides);
+    setCurrentIndex(totalSlides ? (index + totalSlides) % totalSlides : 0);
     setProgress(0);
   }, [totalSlides]);
 
@@ -202,6 +164,8 @@ export default function SlideshowGallery() {
     touchEndXRef.current = null;
   };
 
+  if (!currentSlide) return null;
+
   return (
     <section className={styles.gallerySection} id="gallery" aria-label={t("title")}>
       <div className={styles.inner}>
@@ -230,7 +194,7 @@ export default function SlideshowGallery() {
             onClick={() => setIsLightboxOpen(true)}
             role="button"
             tabIndex={0}
-            aria-label={`${t("slides." + currentSlide.id + ".title")} - ${t("enlarge")}`}
+            aria-label={`${currentSlide.title} - ${t("enlarge")}`}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
@@ -245,14 +209,14 @@ export default function SlideshowGallery() {
             <div className={styles.topMetaBar}>
               <div className={styles.topBadges}>
                 <span className={styles.categoryBadge}>
-                  {t(currentSlide.kickerKey as any)}
+                  {currentSlide.kicker}
                 </span>
                 <span className={styles.locationBadge}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  {t(currentSlide.locationKey as any)}
+                  {currentSlide.location}
                 </span>
               </div>
 
@@ -281,7 +245,7 @@ export default function SlideshowGallery() {
             <div className={styles.slideImageWrapper} key={currentSlide.id}>
               <Img
                 src={currentSlide.image}
-                alt={t(currentSlide.titleKey as any)}
+                alt={currentSlide.title}
                 className={styles.slideImage}
                 fill
                 priority={currentIndex === 0}
@@ -295,9 +259,9 @@ export default function SlideshowGallery() {
             {/* Text Overlay */}
             <div className={styles.slideContent}>
               <div className={styles.slideText}>
-                <span className={styles.tagPill}>{t(currentSlide.tagKey as any)}</span>
-                <h3 className={styles.slideTitle}>{t(currentSlide.titleKey as any)}</h3>
-                <p className={styles.slideDesc}>{t(currentSlide.descKey as any)}</p>
+                <span className={styles.tagPill}>{currentSlide.tag}</span>
+                <h3 className={styles.slideTitle}>{currentSlide.title}</h3>
+                <p className={styles.slideDesc}>{currentSlide.desc}</p>
               </div>
             </div>
 
@@ -370,7 +334,7 @@ export default function SlideshowGallery() {
                     type="button"
                     className={`${styles.thumbBtn} ${isActive ? styles.thumbBtnActive : ""}`}
                     onClick={() => goToSlide(idx)}
-                    title={t(slide.titleKey as any)}
+                    title={slide.title}
                   >
                     <Img
                       src={slide.image}
@@ -379,7 +343,7 @@ export default function SlideshowGallery() {
                       className={styles.thumbMini}
                       sizes="24px"
                     />
-                    <span>{t(slide.kickerKey as any)}</span>
+                    <span>{slide.kicker}</span>
                   </button>
                 );
               })}
@@ -395,13 +359,13 @@ export default function SlideshowGallery() {
           onClick={() => setIsLightboxOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label={t(currentSlide.titleKey as any)}
+          aria-label={currentSlide.title}
         >
           {/* Lightbox Header */}
           <div className={styles.lightboxHeader} onClick={(e) => e.stopPropagation()}>
             <div className={styles.topBadges}>
-              <span className={styles.categoryBadge}>{t(currentSlide.kickerKey as any)}</span>
-              <span className={styles.locationBadge}>{t(currentSlide.locationKey as any)}</span>
+              <span className={styles.categoryBadge}>{currentSlide.kicker}</span>
+              <span className={styles.locationBadge}>{currentSlide.location}</span>
             </div>
 
             <button
@@ -433,7 +397,7 @@ export default function SlideshowGallery() {
             <div className={styles.lightboxImageFrame}>
               <Img
                 src={currentSlide.image}
-                alt={t(currentSlide.titleKey as any)}
+                alt={currentSlide.title}
                 className={styles.lightboxImg}
                 sizes="(max-width: 1400px) 95vw, 1300px"
                 priority
@@ -454,8 +418,8 @@ export default function SlideshowGallery() {
 
           {/* Lightbox Footer Caption */}
           <div className={styles.lightboxFooter} onClick={(e) => e.stopPropagation()}>
-            <h4 className={styles.lightboxTitle}>{t(currentSlide.titleKey as any)}</h4>
-            <p className={styles.lightboxDesc}>{t(currentSlide.descKey as any)}</p>
+            <h4 className={styles.lightboxTitle}>{currentSlide.title}</h4>
+            <p className={styles.lightboxDesc}>{currentSlide.desc}</p>
           </div>
         </div>
       )}

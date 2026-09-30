@@ -165,19 +165,12 @@ export default function EventDetailPage() {
       <section className="benchmark-hero">
         <div className="benchmark-hero-copy">
           <div className="benchmark-brand-row">
-            {event.partners?.[0]?.logo ? (
-              <Img
-                src={event.partners[0].logo}
-                alt={event.partners[0].name || "Logo"}
-                style={{ height: "42px", width: "auto" }}
-              />
-            ) : isFiali ? (
-              <Img
-                src="/assets/fiali/logos/abcn.png"
-                alt="ABCN Logo"
-                style={{ height: "42px", width: "auto" }}
-              />
-            ) : null}
+            {/* The hero always carries the ABCN mark, never a partner's. */}
+            <Img
+              src="/assets/fiali/logos/abcn.png"
+              alt="ABCN Logo"
+              style={{ height: "42px", width: "auto" }}
+            />
             <span>{event.eyebrow || "ABCN Event"}</span>
           </div>
           <h1>
@@ -227,85 +220,6 @@ export default function EventDetailPage() {
                       : (event.grants.count === 1 ? "Grand Prize" : "Grants"))
                   : te("statRoadmap")}
               </span>
-            </div>
-          </div>
-
-          {/* Prominent Supporters Strip in Hero */}
-          <div style={{
-            marginTop: "24px",
-            padding: "16px 20px",
-            background: "rgba(255, 255, 255, 0.92)",
-            backdropFilter: "blur(10px)",
-            border: "1px solid rgba(19, 37, 58, 0.12)",
-            borderRadius: "14px",
-            boxShadow: "0 6px 20px rgba(0, 0, 0, 0.04)"
-          }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "10px",
-              flexWrap: "wrap",
-              gap: "8px"
-            }}>
-              <span style={{
-                fontSize: "0.68rem",
-                fontWeight: 800,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#a45e00",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px"
-              }}>
-                ★ {te("majorSupportersKicker")}
-              </span>
-              <a href="#partners" style={{ fontSize: "0.72rem", color: "#006655", textDecoration: "none", fontWeight: 700 }}>
-                {locale === "de" ? "Alle Partner anzeigen ↓" : "View all partners ↓"}
-              </a>
-            </div>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              flexWrap: "wrap"
-            }}>
-              {(event.partners ?? []).slice(0, 4).map((s, idx) => (
-                <a
-                  key={s.name + idx}
-                  href={s.website || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={`${s.name} (${te("majorFinancialSupporterBadge")})`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: "4px 8px",
-                    background: "#ffffff",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(0, 0, 0, 0.08)",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
-                    transition: "transform 0.2s ease",
-                  }}
-                >
-                  {s.logo ? (
-                    <img
-                      src={s.logo}
-                      alt={s.name}
-                      style={{
-                        height: "26px",
-                        width: "auto",
-                        maxWidth: "110px",
-                        objectFit: "contain",
-                        display: "block",
-                        filter: "none !important"
-                      }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#13253a" }}>{s.name}</span>
-                  )}
-                </a>
-              ))}
             </div>
           </div>
         </div>

@@ -85,7 +85,7 @@
   "gallery": {
     "pill": "Unser Netzwerk in Aktion",
     "title": "Echte Momente. Echte Wirksamkeit.",
-    "lead": "Einblicke in unsere Frankfurter Kohorten-Workshops, Masterclasses, Pitch-Abende und Dachterrassen-Treffen, die afropäische Innovation lebendig machen.",
+    "lead": "Erleben Sie unsere Alumni-Treffen, Fireside-Sessions, Sales-Labs, Rooftop-Meetups und Frauentag-Feiern, die die afropäische Community lebendig machen.",
     "pause": "Diashow anhalten",
     "play": "Diashow abspielen",
     "prev": "Vorheriges Bild",
@@ -94,61 +94,61 @@
     "close": "Vorschau schließen",
     "slideCounter": "{current} von {total}",
     "slides": {
-      "cohort": {
-        "kicker": "Hauptkohorte",
-        "location": "Frankfurt am Main",
-        "tag": "25+ Gründer & Führungskräfte",
-        "title": "Diaspora-Gründer & Führungskräfte vereint",
-        "desc": "Über 25 innovative Unternehmerinnen, Tech-Pioniere und Wirtschaftsentscheider versammelt in Frankfurt für strategischen Austausch und gemeinsames Wachstum."
+      "alumni": {
+        "kicker": "Alumni-Event",
+        "location": "Community-Treffen",
+        "tag": "Alumni-Netzwerk",
+        "title": "Willkommen in der Alumni-Community",
+        "desc": "Mitglieder, Alumni und Partner kommen zusammen, um Fortschritte zu feiern, Erfolge zu teilen und neue Kontakte zu knüpfen."
       },
-      "keynote": {
-        "kicker": "Keynote & Leitung",
-        "location": "Executive Loft · Frankfurt",
+      "fireside": {
+        "kicker": "Fireside-Gespräch",
+        "location": "Business & persönliche Entwicklung",
         "tag": "Führung & Strategie",
-        "title": "Workpreneurship & Nachhaltige Skalierung",
-        "desc": "Harmonie Essome über unternehmerische Nachhaltigkeit, tragfähige Geschäftsmodelle und die strategische Positionierung von Diaspora-Unternehmen im europäischen Markt."
+        "title": "Offene Gespräche über Business & Wachstum",
+        "desc": "Harmonie Essome im offenen Fireside-Format mit praxisnahen Erfahrungen zum Aufbau tragfähiger Unternehmen und zu persönlicher Führung."
       },
-      "pitch": {
-        "kicker": "Startup-Pitches",
-        "location": "Bühne & Showcase · Frankfurt",
-        "tag": "Live-Pitches",
-        "title": "Türen zu Kapital und Reichweite öffnen",
-        "desc": "Early-Stage-Gründerinnen präsentieren ihre skalierbaren Geschäftsmodelle direkt vor Business Angels, Innovationsverantwortlichen und institutionellen Investoren."
+      "salesLab": {
+        "kicker": "Sales Elevate Lab",
+        "location": "Trainingsprogramm",
+        "tag": "Zertifizierte Absolventen",
+        "title": "Vertriebskompetenz, die zu Umsatz wird",
+        "desc": "Teilnehmende feiern ihre Zertifikate nach einem praxisnahen Sales-Lab rund um echte Kundengespräche."
       },
       "rooftop": {
-        "kicker": "Dachterrasse Frankfurt",
-        "location": "Rooftop · Bankenviertel Frankfurt",
-        "tag": "Frankfurter Skyline",
-        "title": "Netzwerken über den Dächern Frankfurts",
-        "desc": "Aufbau vertrauensvoller Beziehungen vor der Kulisse der Frankfurter Skyline – Verknüpfung von afrikanischem Erbe mit europäischer Wirtschaftskraft."
+        "kicker": "Rooftop-Treffen",
+        "location": "Frankfurt",
+        "tag": "Community",
+        "title": "Über der Stadt, näher beieinander",
+        "desc": "Ein entspanntes Treffen auf der Dachterrasse, bei dem Gründer, Fachkräfte und Freunde des Netzwerks vor der Skyline Vertrauen aufbauen."
       },
-      "femaleLeaders": {
-        "kicker": "Frauen in Führung",
-        "location": "Gipfel-Saal · Frankfurt",
-        "tag": "FIALI-Initiative",
-        "title": "Internationale Gründerinnen stärken",
-        "desc": "Teilnehmerinnen und Partnerinnen beim abendlichen Netzwerk-Gipfel für chancengerechte Führung in Technologie, Innovation und Wirtschaft."
+      "networking": {
+        "kicker": "Networking-Abend",
+        "location": "Frauen-Netzwerk",
+        "tag": "Vernetzung",
+        "title": "Wo aus Gesprächen Kooperationen werden",
+        "desc": "Ein Abend voller Begegnungen, Geschichten und neuer Partnerschaften unter Frauen, die in der Region Unternehmen aufbauen."
       },
-      "workshop": {
-        "kicker": "Growth Lab",
-        "location": "Innovationszentrum · Frankfurt",
-        "tag": "Intensiv-Workshop",
-        "title": "Praxisnahe Strategie & Austausch",
-        "desc": "Gründerinnen in fokussierten Arbeitsphasen: Schärfung von Nutzenversprechen, digitalen Roadmaps und individuellen 90-Tage-Wachstumsplänen."
+      "peerCircle": {
+        "kicker": "Peer Circle",
+        "location": "Community-Runde",
+        "tag": "Peer-Learning",
+        "title": "Voneinander lernen",
+        "desc": "Zuhören und Austausch in kleiner Runde, in der Gründerinnen Erfahrungen vergleichen und Ideen für den nächsten Tag mitnehmen."
       },
-      "reception": {
-        "kicker": "Strategischer Dialog",
-        "location": "Empfang & Networking · Frankfurt",
-        "tag": "Matchmaking",
-        "title": "Austausch auf Augenhöhe mit Entscheidern",
-        "desc": "Direkte Gespräche zwischen aufstrebenden Gründerinnen, Technologie-Experten und Führungspersönlichkeiten aus der gesamten Wirtschaftsregion."
+      "roundtable": {
+        "kicker": "Panel & Runder Tisch",
+        "location": "Offene Diskussion",
+        "tag": "Dialog",
+        "title": "Offene Panels mit Raum für jede Stimme",
+        "desc": "Sprechende und Publikum teilen einen Raum und dieselben Fragen zu Unternehmertum, Inklusion und Chancen."
       },
-      "policy": {
-        "kicker": "Städtischer & Politischer Dialog",
-        "location": "Stadt Frankfurt am Main",
-        "tag": "Politischer Dialog",
-        "title": "Verbindung von Innovation und Stadtpolitik",
-        "desc": "Austausch mit Vertretern der Frankfurter Stadtgesellschaft und Politik zur nachhaltigen Unterstützung und Sichtbarkeit von Diaspora-Unternehmern."
+      "womensDay": {
+        "kicker": "Frauentag",
+        "location": "Internationaler Frauentag",
+        "tag": "Feier",
+        "title": "Internationaler Frauentag gemeinsam feiern",
+        "desc": "Frauen aus Wirtschaft und Community kommen zusammen, um den Internationalen Frauentag mit Sichtbarkeit und Solidarität zu begehen."
       }
     }
   },

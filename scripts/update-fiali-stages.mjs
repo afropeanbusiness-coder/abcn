@@ -33,8 +33,8 @@ async function run() {
     return {
       ...stage,
       image: isStage1
-        ? "/assets/abcn/real/interactive-workshop-session.jpg"
-        : "/assets/abcn/real/startup-pitch-showcase.jpg",
+        ? "/assets/abcn/events/sales-lab-workshop-room.jpg"
+        : "/assets/abcn/events/business-development-talk.jpg",
       image_overlay: isStage1
         ? "Interactive Workshop & Strategy Lab"
         : "Pitch Showcase & Ecosystem Matchmaking"

@@ -846,12 +846,12 @@ export default function EventsAdminPage() {
 
   function loadRecommendedGallery() {
     update("gallery", [
-      { url: "/assets/fiali/female-founders-summit.jpg", caption: "Keynote & Founder Spotlight", category: "Summit", size: "wide" },
-      { url: "/assets/fiali/growth-lab-session.jpg", caption: "Intensive Growth Lab Workshop", category: "Workshops", size: "standard" },
-      { url: "/assets/fiali/female-founder-workshop.jpg", caption: "Collaborative Ideation", category: "Workshops", size: "standard" },
-      { url: "/assets/fiali/female-founder-vision.jpg", caption: "Strategic Vision Presentation", category: "Pitch", size: "tall" },
-      { url: "/assets/abcn/collaborators.png", caption: "Ecosystem Matchmaking", category: "Networking", size: "standard" },
-      { url: "/assets/abcn/harmonie-essome.png", caption: "Harmonie Essome · ABCN Leadership", category: "Leadership", size: "standard" },
+      { url: "/assets/abcn/events/alumni-welcome-stage.jpg", caption: "Alumni Welcome & Partner Stage", category: "Community", size: "wide" },
+      { url: "/assets/abcn/events/founder-conversation-spotlight.jpg", caption: "Founder Conversation Spotlight", category: "Summit", size: "tall" },
+      { url: "/assets/abcn/events/mentorship-conversation.jpg", caption: "Mentorship & Candid Dialogue", category: "Mentorship", size: "wide" },
+      { url: "/assets/abcn/events/friends-welcome-moment.jpg", caption: "Founders Meeting Founders", category: "Networking", size: "tall" },
+      { url: "/assets/abcn/events/cafe-networking-space.jpg", caption: "Informal Ecosystem Matchmaking", category: "Networking", size: "tall" },
+      { url: "/assets/abcn/events/harmonie-programme-lead.jpg", caption: "Harmonie Essome · Programme Leadership", category: "Leadership", size: "tall" },
     ]);
     showToast("Loaded recommended summit atmosphere gallery!");
   }
@@ -2143,7 +2143,7 @@ export default function EventsAdminPage() {
                           type="text"
                           value={form.hero_image_url || ""}
                           onChange={(e) => update("hero_image_url", e.target.value)}
-                          placeholder="/assets/fiali/growth-lab-session.jpg"
+                          placeholder="/assets/abcn/events/female-founders-lineup.jpg"
                         />
                       </div>
                     </div>
@@ -2181,7 +2181,7 @@ export default function EventsAdminPage() {
                           type="text"
                           value={form.card_image_url || ""}
                           onChange={(e) => update("card_image_url", e.target.value)}
-                          placeholder="/assets/fiali/female-founders-summit.jpg"
+                          placeholder="/assets/abcn/events/workshop-listening-session.jpg"
                         />
                       </div>
                     </div>
@@ -4088,14 +4088,14 @@ export default function EventsAdminPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem" }}>
                 {[
-                  { name: "Female Founders Summit", path: "/assets/fiali/female-founders-summit.jpg", category: "Summit" },
-                  { name: "Growth Lab Session", path: "/assets/fiali/growth-lab-session.jpg", category: "Workshops" },
-                  { name: "Prototype & Digitalization", path: "/assets/fiali/female-founder-workshop.jpg", category: "Workshops" },
-                  { name: "Vision & Positioning", path: "/assets/fiali/female-founder-vision.jpg", category: "Pitch" },
-                  { name: "Founder Peer Collaborators", path: "/assets/abcn/collaborators.png", category: "Networking" },
-                  { name: "Harmonie Essome (Founder)", path: "/assets/abcn/harmonie-essome.png", category: "Leadership" },
-                  { name: "Ecosystem Network", path: "/assets/abcn/ecosystem-network.png", category: "Ecosystem" },
-                  { name: "Innovators Summit", path: "/assets/abcn/innovators-summit.jpg", category: "Summit" },
+                  { name: "Alumni Welcome Stage", path: "/assets/abcn/events/alumni-welcome-stage.jpg", category: "Community" },
+                  { name: "Female Founders Lineup", path: "/assets/abcn/events/female-founders-lineup.jpg", category: "Summit" },
+                  { name: "Mentorship Conversation", path: "/assets/abcn/events/mentorship-conversation.jpg", category: "Mentorship" },
+                  { name: "Sales Elevate Lab", path: "/assets/abcn/events/sales-elevate-lab-certificates.jpg", category: "Workshops" },
+                  { name: "Rooftop Meetup", path: "/assets/abcn/events/rooftop-terrace-group.jpg", category: "Community" },
+                  { name: "Networking Evening", path: "/assets/abcn/events/networking-evening-group.jpg", category: "Networking" },
+                  { name: "Women's Day", path: "/assets/abcn/events/international-womens-day.jpg", category: "Community" },
+                  { name: "Harmonie Essome (Programme Lead)", path: "/assets/abcn/events/harmonie-programme-lead.jpg", category: "Leadership" },
                   { name: "ABCN Official Logo", path: "/assets/abcn/abcn-logo.png", category: "Brand" },
                 ].map((asset) => (
                   <div key={asset.path} className="cms-gallery-card">

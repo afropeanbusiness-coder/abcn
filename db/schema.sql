@@ -165,8 +165,8 @@ VALUES (
   'published',
   'Flagship Programme',
   'ABCN · Afropean Business & Culture Network',
-  '/assets/fiali/growth-lab-session.jpg',
-  '/assets/fiali/female-founders-summit.jpg',
+  '/assets/abcn/events/female-founders-lineup.jpg',
+  '/assets/abcn/events/workshop-listening-session.jpg',
   true,
   100,
   true,
@@ -188,7 +188,7 @@ VALUES (
       "stage": "Stage 01",
       "title": "Interactive Workshop & Strategy Lab",
       "description": "A full-day intensive session focused on business model refinement, AI and digital adoption, market positioning, and financial planning.",
-      "image": "/assets/abcn/real/interactive-workshop-session.jpg",
+      "image": "/assets/abcn/events/sales-lab-workshop-room.jpg",
       "image_overlay": "Interactive Workshop & Strategy Lab",
       "items": [
         "Business Model & Scalability refinement",
@@ -202,7 +202,7 @@ VALUES (
       "stage": "Stage 02",
       "title": "Closing Summit, Pitch & Ecosystem Matchmaking",
       "description": "High-visibility closing event celebrating female entrepreneurship, featuring participant pitches, curated networking, and micro-grant announcements.",
-      "image": "/assets/abcn/real/startup-pitch-showcase.jpg",
+      "image": "/assets/abcn/events/business-development-talk.jpg",
       "image_overlay": "Pitch Showcase & Ecosystem Matchmaking",
       "items": [
         "Welcome addresses and opening keynote",

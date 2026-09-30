@@ -16,9 +16,9 @@ const founderInstagram = "https://www.instagram.com/harmonieessome/";
 
 // Format keys; the copy lives in messages/{en,de}.json.
 const formatKeys = [
-  { id: "format1", image: "/assets/abcn/real/executive-keynote-session.jpg" },
-  { id: "format2", image: "/assets/abcn/real/frankfurt-rooftop-cohort.jpg" },
-  { id: "format3", image: "/assets/abcn/real/strategic-networking-reception.jpg" },
+  { id: "format1", image: "/assets/abcn/events/community-circle-conversation.jpg" },
+  { id: "format2", image: "/assets/abcn/events/salon-conversation-circle.jpg" },
+  { id: "format3", image: "/assets/abcn/events/conference-audience-hall.jpg" },
   { id: "format4", image: null },
 ];
 
@@ -26,11 +26,10 @@ const formatKeys = [
 const HERO_STRIP_SIZES = "(max-width: 760px) 50vw, 380px";
 
 const images = {
-  hero: "/assets/abcn/real/frankfurt-rooftop-cohort.jpg",
-  business: "/assets/abcn/real/strategic-networking-reception.jpg",
-  culture: "/assets/abcn/real/abcn-flagship-cohort.jpg",
-  community: "/assets/abcn/real/interactive-workshop-session.jpg",
-  join: "/assets/abcn/real/abcn-flagship-cohort.jpg",
+  hero: "/assets/abcn/events/rooftop-community-gathering.jpg",
+  business: "/assets/abcn/events/partner-day-welcome-back.jpg",
+  culture: "/assets/abcn/events/afropean-women-celebration.jpg",
+  join: "/assets/abcn/events/cafe-community-table.jpg",
 };
 
 function Arrow({ down = false }: { down?: boolean }) {
@@ -298,7 +297,7 @@ export default function Home() {
         <div className="founder-visual">
           <div className="founder-portrait-frame">
             <Img
-              src="/assets/abcn/real/harmonie-essome-keynote-portrait.jpg"
+              src="/assets/abcn/events/harmonie-essome-speaking.jpg"
               alt={t("founderPhotoAlt")}
               className="founder-photo"
               sizes="(max-width: 900px) 100vw, 520px"

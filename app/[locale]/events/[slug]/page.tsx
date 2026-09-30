@@ -341,7 +341,7 @@ export default function EventDetailPage() {
             <div className="about-leadership-frame">
               <div className="leadership-photo-card">
                 <Img
-                  src="/assets/abcn/harmonie-essome.png"
+                  src="/assets/abcn/events/harmonie-programme-lead.jpg"
                   alt="Harmonie Essome - Programme Lead & Tech CEO"
                 />
                 <div className="leadership-caption">
@@ -351,8 +351,8 @@ export default function EventDetailPage() {
               </div>
               <div className="leadership-photo-card">
                 <Img
-                  src="/assets/fiali/female-founder-vision.jpg"
-                  alt="Female Founder Vision & Strategy Session"
+                  src="/assets/abcn/events/founder-question-moment.jpg"
+                  alt="A founder asking a question during a FIALI-style community session"
                 />
                 <div className="leadership-caption">
                   <span>{te("cohortMission")}</span>
@@ -431,7 +431,7 @@ export default function EventDetailPage() {
                 <div>
                   {isFiali && (() => {
                     const isStage1 = /1|lab|workshop|strategy/i.test(stage.stage) || /workshop|lab|strategy|phase 1/i.test(stage.title);
-                    const stageImg = (stage as any).image || (isStage1 ? "/assets/abcn/real/interactive-workshop-session.jpg" : "/assets/abcn/real/startup-pitch-showcase.jpg");
+                    const stageImg = (stage as any).image || (isStage1 ? "/assets/abcn/events/sales-lab-workshop-room.jpg" : "/assets/abcn/events/business-development-talk.jpg");
                     const stageOverlay = (stage as any).image_overlay || (isStage1 ? "Interactive Workshop & Strategy Lab" : "Pitch Showcase & Ecosystem Matchmaking");
                     return (
                       <div className="stage-image-preview">
@@ -777,11 +777,12 @@ export default function EventDetailPage() {
             </div>
             {isFiali && (
               <div style={{ marginTop: "28px", display: "flex", alignItems: "center", gap: "16px", background: "rgba(15, 76, 56, 0.08)", padding: "16px 20px", borderRadius: "14px", border: "1px solid rgba(15, 76, 56, 0.15)" }}>
-                <Img
-                  src="/assets/abcn/harmonie-essome.png"
-                  alt="Harmonie Essome"
-                  style={{ width: "52px", height: "52px", borderRadius: "50%", objectFit: "cover", objectPosition: "top", border: "2px solid #5f8fc0" }}
-                />
+                <span
+                  aria-hidden="true"
+                  style={{ width: "52px", height: "52px", borderRadius: "50%", flexShrink: 0, display: "grid", placeItems: "center", background: "#13253a", color: "#fff", fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.04em", border: "2px solid #5f8fc0" }}
+                >
+                  HE
+                </span>
                 <div>
                   <strong style={{ display: "block", fontSize: "0.88rem", color: "#13253a" }}>Harmonie Essome</strong>
                   <span style={{ fontSize: "0.72rem", color: "rgba(16, 37, 31, 0.72)" }}>{te("leadRole")}</span>

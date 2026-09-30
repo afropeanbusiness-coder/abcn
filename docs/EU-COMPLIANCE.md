@@ -216,8 +216,6 @@ npm run images:manifest
 
 - Run PageSpeed Insights against the deployed URL with German mobile throttling
   and record the numbers before launch.
-- `public/assets/abcn/harmonie-essome-portrait.png` (738 KB) is unreferenced and
-  can be deleted.
 
 ---
 

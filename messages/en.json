@@ -85,7 +85,7 @@
   "gallery": {
     "pill": "Ecosystem in Action",
     "title": "Real Moments. Real Momentum.",
-    "lead": "Step inside our Frankfurt cohort sessions, executive masterclasses, investor pitch nights, and skyline gatherings bringing Afropean innovation to life.",
+    "lead": "Step inside our alumni gatherings, fireside sessions, sales labs, rooftop meetups and Women's Day celebrations bringing Afropean community to life.",
     "pause": "Pause slideshow",
     "play": "Play slideshow",
     "prev": "Previous slide",
@@ -94,61 +94,61 @@
     "close": "Close preview",
     "slideCounter": "{current} of {total}",
     "slides": {
-      "cohort": {
-        "kicker": "Flagship Cohort",
-        "location": "Frankfurt am Main",
-        "tag": "25+ Leaders & Founders",
-        "title": "Connecting Diaspora Founders & Executives",
-        "desc": "Innovative entrepreneurs, tech leaders, and corporate decision-makers assembled in Frankfurt for high-impact strategy, collaborative scaling, and peer growth."
+      "alumni": {
+        "kicker": "Alumni Event",
+        "location": "Community Gathering",
+        "tag": "Alumni Network",
+        "title": "Welcoming the Alumni Community",
+        "desc": "Members, alumni and partners coming together to celebrate progress, share wins and open the next round of introductions."
       },
-      "keynote": {
-        "kicker": "Keynote & Direction",
-        "location": "Executive Loft · Frankfurt",
+      "fireside": {
+        "kicker": "Fireside Session",
+        "location": "Business & Personal Development",
         "tag": "Leadership & Strategy",
-        "title": "Workpreneurship & Sustainable Scaling",
-        "desc": "Harmonie Essome delivering key insights on business viability, long-term commercial models, and positioning diaspora ventures for European market success."
+        "title": "Candid Conversations on Business & Growth",
+        "desc": "Harmonie Essome in an open fireside format, sharing practical lessons on building lasting ventures and personal leadership."
       },
-      "pitch": {
-        "kicker": "Startup Pitches",
-        "location": "Showcase Stage · Frankfurt",
-        "tag": "Live Pitching",
-        "title": "Opening Doors to Capital & Visibility",
-        "desc": "Early-stage diaspora founders pitching their scalable business solutions directly to business angels, corporate partners, and institutional investors."
+      "salesLab": {
+        "kicker": "Sales Elevate Lab",
+        "location": "Training Programme",
+        "tag": "Certified Graduates",
+        "title": "Sales Skills That Turn Into Revenue",
+        "desc": "Participants celebrating their certificates after a hands-on sales lab built around real customer conversations."
       },
       "rooftop": {
-        "kicker": "Skyline Gathering",
-        "location": "Rooftop Terrace · Financial District",
-        "tag": "Frankfurt Horizon",
-        "title": "Golden Hour Over Frankfurt's Horizon",
-        "desc": "Building high-trust peer relationships against the iconic Frankfurt skyline, bridging African heritage with European economic opportunities."
+        "kicker": "Rooftop Meetup",
+        "location": "Frankfurt",
+        "tag": "Community",
+        "title": "Above the City, Closer Together",
+        "desc": "A relaxed rooftop gathering where founders, professionals and friends of the network build trust against the city skyline."
       },
-      "femaleLeaders": {
-        "kicker": "Female Leadership",
-        "location": "Summit Hall · Frankfurt",
-        "tag": "FIALI Initiative",
-        "title": "Empowering International Female Founders",
-        "desc": "Cohort founders and partners standing together at the evening networking summit, driving inclusive leadership in tech, entrepreneurship, and digital transformation."
+      "networking": {
+        "kicker": "Networking Evening",
+        "location": "Women's Network",
+        "tag": "Connection",
+        "title": "Where Conversations Become Collaborations",
+        "desc": "An evening of introductions, shared stories and new partnerships among women building businesses across the region."
       },
-      "workshop": {
-        "kicker": "Growth Lab",
-        "location": "Innovation Hub · Frankfurt",
-        "tag": "Intensive Workshop",
-        "title": "Hands-On Strategy & Peer Insights",
-        "desc": "Founders engaged in rigorous working sessions sharpening value propositions, digital execution workflows, and actionable 90-day growth roadmaps."
+      "peerCircle": {
+        "kicker": "Peer Circle",
+        "location": "Community Circle",
+        "tag": "Peer Learning",
+        "title": "Learning From Each Other's Journeys",
+        "desc": "Small-group listening and exchange where founders compare experiences and take home ideas they can use the next day."
       },
-      "reception": {
-        "kicker": "Ecosystem Matchmaking",
-        "location": "Executive Reception · Frankfurt",
-        "tag": "Strategic Dialogue",
-        "title": "High-Level Stakeholder Matchmaking",
-        "desc": "Direct, candid dialogues connecting ambitious founders with institutional partners, corporate leaders, and startup champions across the region."
+      "roundtable": {
+        "kicker": "Panel & Roundtable",
+        "location": "Open Discussion",
+        "tag": "Dialogue",
+        "title": "Open Panels With Room for Every Voice",
+        "desc": "Speakers and audience sharing one room and the same questions on entrepreneurship, inclusion and opportunity."
       },
-      "policy": {
-        "kicker": "Institutional Backing",
-        "location": "Stadt Frankfurt am Main",
-        "tag": "Civic & Policy Dialogue",
-        "title": "Connecting Innovation with City Policy",
-        "desc": "Engaging Frankfurt civic, economic, and political representatives across parties to champion diaspora entrepreneurship and systemic inclusion."
+      "womensDay": {
+        "kicker": "Women's Day",
+        "location": "Internationaler Frauentag",
+        "tag": "Celebration",
+        "title": "Celebrating International Women's Day",
+        "desc": "Women from business and community gathering to mark International Women's Day with visibility and solidarity."
       }
     }
   },

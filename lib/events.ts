@@ -32,6 +32,8 @@ export type EventGalleryItem = {
   caption?: string;
   alt?: string;
   category?: string;
+  /** Which chapter of the gallery the photo belongs to. */
+  chapter?: "stage" | "rooms" | "together";
   size?: "standard" | "wide" | "tall";
 };
 
@@ -230,14 +232,17 @@ export const FIALI_FALLBACK: EventRecord = {
       "A grand prize of €1,000 awarded to 1 person supports early-stage founders developing digital or technical solutions, including prototyping, product development, branding, market entry, initial marketing and sales, and eligible incorporation expenses.",
   },
   gallery: [
-    { url: "/assets/abcn/events/alumni-welcome-stage.jpg", caption: "Alumni Welcome & Partner Stage", category: "Community", size: "wide" },
-    { url: "/assets/abcn/events/founder-conversation-spotlight.jpg", caption: "Founder Conversation Spotlight", category: "Summit", size: "tall" },
-    { url: "/assets/abcn/events/mentorship-conversation.jpg", caption: "Mentorship & Candid Dialogue", category: "Mentorship", size: "wide" },
-    { url: "/assets/abcn/events/friends-welcome-moment.jpg", caption: "Founders Meeting Founders", category: "Networking", size: "tall" },
-    { url: "/assets/abcn/events/audience-listening-session.jpg", caption: "Full-House Community Session", category: "Community", size: "tall" },
-    { url: "/assets/abcn/events/cafe-networking-space.jpg", caption: "Informal Ecosystem Matchmaking", category: "Networking", size: "tall" },
-    { url: "/assets/abcn/events/hall-keynote-audience.jpg", caption: "Keynote & Founder Spotlight", category: "Summit", size: "tall" },
-    { url: "/assets/abcn/events/evening-social-gathering.jpg", caption: "Evening Network Gathering", category: "Community", size: "tall" },
+    { url: "/assets/abcn/events/alumni-welcome-stage.jpg", caption: "Alumni Welcome & Partner Stage", category: "Community", chapter: "stage" },
+    { url: "/assets/abcn/events/mentorship-conversation.jpg", caption: "Mentorship & Candid Dialogue", category: "Mentorship", chapter: "stage" },
+    { url: "/assets/abcn/events/hall-keynote-audience.jpg", caption: "Keynote & Founder Spotlight", category: "Summit", chapter: "stage" },
+    { url: "/assets/abcn/events/fireside-session-room.jpg", caption: "Fireside Session on Business Growth", category: "Fireside", chapter: "stage" },
+    { url: "/assets/abcn/events/founder-conversation-spotlight.jpg", caption: "Founder Conversation Spotlight", category: "Interview", chapter: "rooms" },
+    { url: "/assets/abcn/events/audience-listening-session.jpg", caption: "Full-House Community Session", category: "Community", chapter: "rooms" },
+    { url: "/assets/abcn/events/cafe-networking-space.jpg", caption: "Informal Ecosystem Matchmaking", category: "Networking", chapter: "rooms" },
+    { url: "/assets/abcn/events/friends-welcome-moment.jpg", caption: "Founders Meeting Founders", category: "Networking", chapter: "together" },
+    { url: "/assets/abcn/events/evening-social-gathering.jpg", caption: "Evening Network Gathering", category: "Community", chapter: "together" },
+    { url: "/assets/abcn/events/style-networking-evening.jpg", caption: "Style & Networking Evening", category: "Networking", chapter: "together" },
+    { url: "/assets/abcn/events/frankfurt-skyline-street.jpg", caption: "The City We Build In", category: "Frankfurt", chapter: "together" },
   ],
   application_open: true,
   application_deadline: "Applications reviewed on a rolling basis · limited cohort of 10-15 founders",
@@ -470,6 +475,7 @@ export function normaliseEvent(
             caption: item.caption || "",
             alt: item.alt || item.caption || "",
             category: item.category || "Atmosphere",
+            chapter: ["stage", "rooms", "together"].includes(item.chapter) ? item.chapter : undefined,
             size: (item.size || "standard") as "standard" | "wide" | "tall",
           };
         })

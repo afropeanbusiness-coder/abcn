@@ -12,6 +12,7 @@ import ProminentSupporters, { MAJOR_FINANCIAL_SUPPORTERS } from "@/components/Pr
 import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import Img from "@/components/Img";
+import EventGallery from "@/components/EventGallery";
 
 /**
  * FAQ grouping. The numbers are the faq<N>Q / faq<N>A message keys; grouping
@@ -586,32 +587,12 @@ export default function EventDetailPage() {
             </div>
             <p>
               {isFiali
-                ? "Moments from the FIALI initiative, ABCN founder growth labs, and international summits bridging diaspora enterprise with Frankfurt’s innovation economy."
+                ? te("galleryLead")
                 : `Atmosphere, workshops, and ecosystem highlights from ${event.title}.`}
             </p>
           </div>
 
-          <div className="fiali-gallery-grid">
-            {event.gallery.map((item, idx) => {
-              const isWide = item.size === "wide" || idx === 0;
-              const category = item.category || (isFiali && idx < 5 ? te(`g${idx + 1}` as any) : "Atmosphere");
-              const caption = item.caption || (isFiali && idx < 5 ? te(`g${idx + 1}b` as any) : "");
-              return (
-                <div key={idx} className={`fiali-gallery-card ${isWide ? "featured" : ""}`}>
-                  <Img
-                    src={item.url}
-                    alt={item.alt || item.caption || `${event.title} gallery photo ${idx + 1}`}
-                  />
-                  {(category || caption) && (
-                    <div className="fiali-gallery-info">
-                      {category && <span>{category}</span>}
-                      {caption && <strong>{caption}</strong>}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <EventGallery items={event.gallery} alt={event.title} />
         </section>
       )}
 

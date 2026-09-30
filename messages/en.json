@@ -364,7 +364,19 @@
     "faq15Q": "What language do I need?",
     "faq15A": "This website and the application form are both available in German and English, and you are welcome to apply in either. FIALI is built for the international founder community in Frankfurt and the Rhine-Main region.",
     "faq16Q": "What if I am not selected this time?",
-    "faq16A": "The cohort is capped at 10 to 15 founders, so strong applications will not always fit a given round. ABCN runs business roundtables, cultural salons and cross-border gatherings throughout the year, and the network stays open to you regardless of the outcome."
+    "faq16A": "The cohort is capped at 10 to 15 founders, so strong applications will not always fit a given round. ABCN runs business roundtables, cultural salons and cross-border gatherings throughout the year, and the network stays open to you regardless of the outcome.",
+    "galleryLead": "Moments from ABCN programmes and gatherings, arranged as three chapters: the voices on stage, the rooms where the work happens, and the people who make the network.",
+    "galleryStageTitle": "On stage",
+    "galleryStageCopy": "Keynotes, fireside talks and welcomes that set the direction.",
+    "galleryRoomsTitle": "In the room",
+    "galleryRoomsCopy": "Workshops and working sessions where ideas turn into plans.",
+    "galleryTogetherTitle": "Together",
+    "galleryTogetherCopy": "The introductions, evenings and friendships around the programme.",
+    "galleryPhotos": "photos",
+    "galleryViewPhoto": "View photo",
+    "galleryClose": "Close",
+    "galleryPrev": "Previous photo",
+    "galleryNext": "Next photo"
   },
   "events": {
     "majorSupportersKicker": "Major Financial Supporters",

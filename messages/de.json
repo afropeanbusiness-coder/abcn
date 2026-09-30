@@ -364,7 +364,19 @@
     "faq15Q": "Welche Sprache brauche ich?",
     "faq15A": "Diese Website und das Bewerbungsformular stehen auf Deutsch und Englisch zur Verfügung — Sie können sich in beiden Sprachen bewerben. FIALI richtet sich an die internationale Gründerinnen-Community in Frankfurt und der Region Rhein-Main.",
     "faq16Q": "Was, wenn ich dieses Mal nicht ausgewählt werde?",
-    "faq16A": "Der Jahrgang ist auf 10 bis 15 Gründerinnen begrenzt — auch starke Bewerbungen passen daher nicht immer in eine bestimmte Runde. ABCN veranstaltet das ganze Jahr über Business-Runden, Kultursalons und grenzüberschreitende Begegnungen; das Netzwerk steht Ihnen unabhängig vom Ergebnis offen."
+    "faq16A": "Der Jahrgang ist auf 10 bis 15 Gründerinnen begrenzt — auch starke Bewerbungen passen daher nicht immer in eine bestimmte Runde. ABCN veranstaltet das ganze Jahr über Business-Runden, Kultursalons und grenzüberschreitende Begegnungen; das Netzwerk steht Ihnen unabhängig vom Ergebnis offen.",
+    "galleryLead": "Momente aus ABCN-Programmen und Treffen in drei Kapiteln: die Stimmen auf der Bühne, die Räume, in denen gearbeitet wird, und die Menschen, die das Netzwerk ausmachen.",
+    "galleryStageTitle": "Auf der Bühne",
+    "galleryStageCopy": "Keynotes, Fireside-Gespräche und Begrüßungen, die die Richtung vorgeben.",
+    "galleryRoomsTitle": "Im Raum",
+    "galleryRoomsCopy": "Workshops und Arbeitssitzungen, in denen aus Ideen Pläne werden.",
+    "galleryTogetherTitle": "Gemeinsam",
+    "galleryTogetherCopy": "Begegnungen, Abende und Freundschaften rund um das Programm.",
+    "galleryPhotos": "Fotos",
+    "galleryViewPhoto": "Foto ansehen",
+    "galleryClose": "Schließen",
+    "galleryPrev": "Vorheriges Foto",
+    "galleryNext": "Nächstes Foto"
   },
   "events": {
     "majorSupportersKicker": "Hauptförderer",

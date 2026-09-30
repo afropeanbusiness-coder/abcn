@@ -1,0 +1,134 @@
+.gallery { display: flex; flex-direction: column; gap: clamp(56px, 8vw, 96px); }
+
+.chapter {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.intro { position: sticky; top: 110px; padding-top: 6px; }
+.num {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: clamp(3.4rem, 6vw, 5rem);
+  line-height: 1;
+  color: var(--fiali-accent, #5f8fc0);
+  opacity: 0.55;
+}
+.intro h3 {
+  margin: 10px 0 12px;
+  padding-top: 14px;
+  border-top: 2px solid #13253a;
+  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #13253a;
+}
+.intro p { margin: 0 0 14px; color: rgba(16, 37, 31, 0.68); line-height: 1.6; font-size: 0.97rem; }
+.intro small {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--fiali-mid, #123f6d);
+}
+
+/* Masonry: photos keep their own proportions, so nothing is cropped. */
+.masonry { column-count: 2; column-gap: 18px; }
+
+.tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: zoom-in;
+  break-inside: avoid;
+  background: var(--fiali-deep, #0b2a4a);
+  box-shadow: 0 16px 36px -14px rgba(11, 42, 74, 0.28);
+  text-align: left;
+}
+.tile img { display: block; width: 100%; height: auto; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.tile:hover img, .tile:focus-visible img { transform: scale(1.04); }
+.tile:focus-visible { outline: 3px solid var(--fiali-accent, #5f8fc0); outline-offset: 3px; }
+
+.cap {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 44px 18px 16px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(11, 42, 74, 0.92), rgba(11, 42, 74, 0));
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.tile:hover .cap, .tile:focus-visible .cap { opacity: 1; transform: none; }
+.cap em {
+  font-style: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--fiali-mint, #b9cfe8);
+}
+.cap strong { font-size: 1rem; letter-spacing: -0.01em; }
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  align-items: center;
+  background: rgba(6, 20, 36, 0.94);
+  padding: 24px 12px;
+}
+.lightbox figure { grid-column: 2; grid-row: 1; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 0; }
+.lightbox figure img { max-width: 100%; max-height: 78vh; width: auto; height: auto; object-fit: contain; border-radius: 10px; }
+.lightbox figcaption { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; justify-content: center; color: #fff; text-align: center; }
+.lightbox figcaption em {
+  font-style: normal;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--fiali-mint, #b9cfe8);
+}
+.lightbox figcaption small { opacity: 0.6; font-size: 0.8rem; }
+.lbClose, .lbNav {
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.lbClose:hover, .lbNav:hover { background: rgba(255, 255, 255, 0.24); }
+.lbClose { position: absolute; top: 16px; right: 16px; z-index: 2; }
+.lbPrev { grid-column: 1; grid-row: 1; justify-self: center; }
+.lbNext { grid-column: 3; grid-row: 1; justify-self: center; }
+
+@media (max-width: 900px) {
+  .chapter { grid-template-columns: 1fr; gap: 20px; }
+  .intro { position: static; }
+  .cap { opacity: 1; transform: none; padding-top: 34px; }
+  .cap strong { font-size: 0.86rem; }
+  .masonry { column-gap: 12px; }
+  .tile { margin-bottom: 12px; border-radius: 12px; }
+  .lightbox { grid-template-columns: 1fr; }
+  .lightbox figure { grid-column: 1; }
+  .lbNav { position: absolute; bottom: 20px; }
+  .lbPrev { left: 20px; }
+  .lbNext { right: 20px; }
+}

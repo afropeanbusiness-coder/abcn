@@ -24,7 +24,8 @@ export type FieldType =
   | "radio"
   | "checkboxes"
   | "checkbox"
-  | "date";
+  | "date"
+  | "file";
 
 /**
  * Standard fields map to a column on the applicant record (used by the
@@ -71,6 +72,14 @@ export interface FormOption {
   label_de?: string;
 }
 
+/** Show a question only when an earlier answer matches. */
+export interface ShowIf {
+  /** id of an earlier question */
+  field: string;
+  op: "equals" | "notEquals" | "includes" | "filled";
+  value?: string;
+}
+
 export interface FormField {
   id: string;
   type: FieldType;
@@ -86,6 +95,7 @@ export interface FormField {
   width?: "half" | "full";
   options?: FormOption[];
   default?: string;
+  showIf?: ShowIf;
 }
 
 export interface FormStep {
@@ -121,7 +131,12 @@ export const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   radio: "Single choice",
   checkboxes: "Multiple choice",
   checkbox: "Yes / No tick box",
+  file: "File upload",
 };
+
+/** Uploads: size cap (Vercel request limit is 4.5 MB) and accepted extensions. */
+export const MAX_FILE_BYTES = 4 * 1024 * 1024;
+export const FILE_EXTENSIONS = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "csv", "png", "jpg", "jpeg"];
 
 const MAX_TEXT = 5000;
 
@@ -278,6 +293,44 @@ export function parseForm(raw: unknown): ApplicationForm | null {
 export const allFields = (form: ApplicationForm): FormField[] => form.steps.flatMap((s) => s.fields);
 
 // ---------------------------------------------------------------------------
+// Conditional questions
+// ---------------------------------------------------------------------------
+
+function comparable(v: AnswerValue | undefined): string | string[] {
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  if (Array.isArray(v)) return v;
+  return String(v ?? "").trim();
+}
+
+/** Whether a question is shown given the answers so far. */
+export function isVisible(field: FormField, values: Answers): boolean {
+  const c = field.showIf;
+  if (!c || !c.field) return true;
+  const v = comparable(values[c.field]);
+  const target = (c.value ?? "").trim();
+  switch (c.op) {
+    case "filled":
+      return Array.isArray(v) ? v.length > 0 : v !== "";
+    case "notEquals":
+      return Array.isArray(v) ? !v.includes(target) : v !== target;
+    case "includes":
+    case "equals":
+    default:
+      return Array.isArray(v) ? v.includes(target) : v === target;
+  }
+}
+
+export const visibleFields = (step: FormStep, values: Answers): FormField[] =>
+  step.fields.filter((f) => isVisible(f, values));
+
+/** Steps that still have at least one visible question. */
+export const visibleSteps = (form: ApplicationForm, values: Answers): FormStep[] =>
+  form.steps.filter((st) => visibleFields(st, values).length > 0);
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const isFileId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
+
+// ---------------------------------------------------------------------------
 // Validation (shared by the browser and the server)
 // ---------------------------------------------------------------------------
 
@@ -310,6 +363,8 @@ export function validateField(field: FormField, value: AnswerValue | undefined):
       return Number.isFinite(Number(s)) ? null : "number";
     case "date":
       return /^\d{4}-\d{2}-\d{2}$/.test(s) ? null : "date";
+    case "file":
+      return isFileId(s) ? null : "option";
     case "select":
     case "radio":
       return (field.options || []).some((o) => o.value === s) ? null : "option";
@@ -322,6 +377,7 @@ export function validateField(field: FormField, value: AnswerValue | undefined):
 export function validateFields(fields: FormField[], values: Answers): Record<string, FieldError> {
   const errors: Record<string, FieldError> = {};
   for (const field of fields) {
+    if (!isVisible(field, values)) continue; // a hidden question is never required
     const e = validateField(field, values[field.id]);
     if (e) errors[field.id] = e;
   }

@@ -11,6 +11,10 @@ import {
   parseForm,
   pickText,
   validateFields,
+  visibleFields,
+  visibleSteps,
+  FILE_EXTENSIONS,
+  MAX_FILE_BYTES,
   type AnswerValue,
   type Answers,
   type ApplicationForm,
@@ -55,11 +59,13 @@ export default function MultiStepApplication({
     () => parseForm(customForm) ?? buildDefaultForm(hasGrants),
     [customForm, hasGrants]
   );
-  const steps = form.steps;
-  const reviewStep = steps.length + 1; // fixed final step: review + consent
-
   const [step, setStep] = useState<number>(1);
   const [values, setValues] = useState<Answers>(() => initialValues(form));
+  // Steps whose questions are all hidden by conditions are skipped entirely.
+  const steps = visibleSteps(form, values);
+  const reviewStep = steps.length + 1; // fixed final step: review + consent
+  const [fileMeta, setFileMeta] = useState<Record<string, { name: string; size: number }>>({});
+  const [uploading, setUploading] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -103,7 +109,7 @@ export default function MultiStepApplication({
   const validateStep = (currentStep: number): boolean => {
     const err: Record<string, string> = {};
     if (currentStep <= steps.length) {
-      const fields = steps[currentStep - 1].fields;
+      const fields = visibleFields(steps[currentStep - 1], values);
       const found = validateFields(fields, values);
       for (const f of fields) if (found[f.id]) err[f.id] = errorText(f, found[f.id]);
     } else if (!consent) {
@@ -111,6 +117,35 @@ export default function MultiStepApplication({
     }
     setErrors(err);
     return Object.keys(err).length === 0;
+  };
+
+  const uploadFile = async (field: FormField, file: File | undefined) => {
+    if (!file) return;
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (!FILE_EXTENSIONS.includes(ext)) {
+      setErrors((p) => ({ ...p, [field.id]: t("errFileType", { types: FILE_EXTENSIONS.join(", ") }) }));
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setErrors((p) => ({ ...p, [field.id]: t("errFileSize", { mb: MAX_FILE_BYTES / 1024 / 1024 }) }));
+      return;
+    }
+    setUploading(field.id);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("fieldId", field.id);
+      fd.append("eventId", eventId || "");
+      const res = await fetch("/api/applications/upload", { method: "POST", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.id) throw new Error(json.error || t("errSubmit"));
+      setValue(field.id, json.id);
+      setFileMeta((m) => ({ ...m, [field.id]: { name: json.name, size: json.size } }));
+    } catch (err: any) {
+      setErrors((p) => ({ ...p, [field.id]: err?.message || t("errSubmit") }));
+    } finally {
+      setUploading(null);
+    }
   };
 
   const handleNext = () => {
@@ -285,7 +320,7 @@ export default function MultiStepApplication({
               </div>
 
               <div className="wizard-form-grid">
-                {steps[step - 1].fields.map((field) => (
+                {visibleFields(steps[step - 1], values).map((field) => (
                   <FieldInput
                     key={field.id}
                     field={field}
@@ -294,6 +329,21 @@ export default function MultiStepApplication({
                     onChange={(v) => setValue(field.id, v)}
                     txt={txt}
                     optionalLabel={t("optional")}
+                    fileMeta={fileMeta[field.id]}
+                    uploading={uploading === field.id}
+                    onFile={(f) => uploadFile(field, f)}
+                    onClearFile={() => {
+                      setValue(field.id, "");
+                      setFileMeta((m) => {
+                        const n = { ...m };
+                        delete n[field.id];
+                        return n;
+                      });
+                    }}
+                    fileHint={t("fileHint", { types: FILE_EXTENSIONS.join(", "), mb: MAX_FILE_BYTES / 1024 / 1024 })}
+                    chooseLabel={t("chooseFile")}
+                    removeLabel={t("removeFile")}
+                    uploadingLabel={t("uploadingFile")}
                   />
                 ))}
               </div>
@@ -312,11 +362,13 @@ export default function MultiStepApplication({
                 {steps.map((st) => (
                   <div key={st.id} style={{ marginBottom: "14px" }}>
                     <div className="wizard-review-row" style={{ flexWrap: "wrap", borderBottom: "none", paddingBottom: 0 }}>
-                      {st.fields.map((f) => (
+                      {visibleFields(st, values).map((f) => (
                         <div className="wizard-review-item" key={f.id} style={{ minWidth: "45%" }}>
                           <span>{txt(f.label, f.label_de)}</span>
                           <strong style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                            {displayValue(f, values[f.id], locale)}
+                            {f.type === "file"
+                              ? fileMeta[f.id]?.name || "—"
+                              : displayValue(f, values[f.id], locale)}
                           </strong>
                         </div>
                       ))}
@@ -416,6 +468,14 @@ function FieldInput({
   onChange,
   txt,
   optionalLabel,
+  fileMeta,
+  uploading,
+  onFile,
+  onClearFile,
+  fileHint,
+  chooseLabel,
+  removeLabel,
+  uploadingLabel,
 }: {
   field: FormField;
   value: AnswerValue | undefined;
@@ -423,6 +483,14 @@ function FieldInput({
   onChange: (v: AnswerValue) => void;
   txt: (en?: string, de?: string) => string;
   optionalLabel: string;
+  fileMeta?: { name: string; size: number };
+  uploading?: boolean;
+  onFile: (f: File | undefined) => void;
+  onClearFile: () => void;
+  fileHint: string;
+  chooseLabel: string;
+  removeLabel: string;
+  uploadingLabel: string;
 }) {
   const id = `f-${field.id}`;
   const label = txt(field.label, field.label_de);
@@ -479,6 +547,33 @@ function FieldInput({
       );
       break;
     }
+    case "file":
+      control = (
+        <div>
+          {str && fileMeta ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <span>📎 {fileMeta.name} <small style={{ opacity: 0.6 }}>({Math.max(1, Math.round(fileMeta.size / 1024))} KB)</small></span>
+              <button type="button" className="wizard-btn-prev" style={{ padding: "4px 12px" }} onClick={onClearFile}>
+                {removeLabel}
+              </button>
+            </div>
+          ) : (
+            <input
+              id={id}
+              type="file"
+              accept={FILE_EXTENSIONS.map((e) => "." + e).join(",")}
+              disabled={uploading}
+              onChange={(e) => {
+                onFile(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          )}
+          {uploading && <div style={{ fontSize: "0.76rem", marginTop: 4 }}>{uploadingLabel}</div>}
+          {!str && <div style={{ fontSize: "0.72rem", opacity: 0.6, marginTop: 4 }}>{fileHint}</div>}
+        </div>
+      );
+      break;
     case "checkbox":
       control = (
         <label style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer" }}>

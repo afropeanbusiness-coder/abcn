@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-fetch";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { neon } from "@/lib/neon";
@@ -202,6 +203,7 @@ export default function EventsAdminPage() {
 
   // Website Partners State (Global Site Partners)
   const [sitePartners, setSitePartners] = useState<SitePartner[]>([]);
+  const [formTemplates, setFormTemplates] = useState<{ id: string; name: string; schema: ApplicationForm }[]>([]);
   const [sitePartnersLoading, setSitePartnersLoading] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
   const [partnerForm, setPartnerForm] = useState<SitePartner>({
@@ -289,7 +291,7 @@ export default function EventsAdminPage() {
       const role = String(user.role || "");
       if (role.includes("admin")) {
         setMode("admin");
-        await Promise.all([loadEvents(), loadAllApplications(), loadSitePartners()]);
+        await Promise.all([loadEvents(), loadAllApplications(), loadSitePartners(), loadFormTemplates()]);
       } else {
         setMode("needs-admin");
       }
@@ -323,7 +325,7 @@ export default function EventsAdminPage() {
   // got saved back over the real data.
   async function loadEvents() {
     try {
-      const res = await fetch("/api/admin/events", { cache: "no-store" });
+      const res = await adminFetch("/api/admin/events", { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
@@ -348,7 +350,7 @@ export default function EventsAdminPage() {
   async function loadAllApplications() {
     setApplicationsLoading(true);
     try {
-      const res = await fetch("/api/admin/applications");
+      const res = await adminFetch("/api/admin/applications");
       if (res.ok) {
         const json = await res.json();
         setAllApplications((json.data || []) as ApplicationRow[]);
@@ -367,7 +369,7 @@ export default function EventsAdminPage() {
     }
     setApplicationsLoading(true);
     try {
-      const res = await fetch(`/api/admin/applications?eventId=${encodeURIComponent(eventId)}`);
+      const res = await adminFetch(`/api/admin/applications?eventId=${encodeURIComponent(eventId)}`);
       if (res.ok) {
         const json = await res.json();
         setApplications((json.data || []) as ApplicationRow[]);
@@ -513,7 +515,7 @@ export default function EventsAdminPage() {
       // One write path, and it must succeed: a failed request is an error,
       // never a "saved" toast. (A silent second path used to swallow failures,
       // which is why deletions appeared to work but never reached the database.)
-      const res = await fetch("/api/admin/events", {
+      const res = await adminFetch("/api/admin/events", {
         method: selectedId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(selectedId ? { id: selectedId, ...payload } : payload),
@@ -540,7 +542,7 @@ export default function EventsAdminPage() {
   async function confirmAndRemoveEvent() {
     if (!selectedId) return;
     try {
-      const res = await fetch(`/api/admin/events?id=${encodeURIComponent(selectedId)}`, {
+      const res = await adminFetch(`/api/admin/events?id=${encodeURIComponent(selectedId)}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -559,7 +561,7 @@ export default function EventsAdminPage() {
   // Quick Status Toggle on Event
   async function quickSetEventStatus(eventId: string, newStatus: Editable["status"]) {
     try {
-      const res = await fetch("/api/admin/events", {
+      const res = await adminFetch("/api/admin/events", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: eventId, status: newStatus }),
@@ -581,7 +583,7 @@ export default function EventsAdminPage() {
   // Application Pipeline Status & Notes Update
   async function updateApplicationStatus(id: string, status: string, notes?: string) {
     try {
-      const res = await fetch("/api/admin/applications", {
+      const res = await adminFetch("/api/admin/applications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status, ...(notes !== undefined ? { admin_notes: notes } : {}) }),
@@ -611,7 +613,7 @@ export default function EventsAdminPage() {
   async function deleteApplication(id: string) {
     if (!confirm("Permanently delete this founder application?")) return;
     try {
-      const res = await fetch(`/api/admin/applications?id=${encodeURIComponent(id)}`, {
+      const res = await adminFetch(`/api/admin/applications?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -663,7 +665,7 @@ export default function EventsAdminPage() {
       `"${(a.motivation || "").replace(/"/g, '""')}"`,
       `"${(a.admin_notes || "").replace(/"/g, '""')}"`,
       `"${Object.values(a.answers || {})
-        .map((x: any) => `${x.label}: ${Array.isArray(x.value) ? x.value.join(" | ") : typeof x.value === "boolean" ? (x.value ? "Yes" : "No") : x.value}`)
+        .map((x: any) => `${x.label}: ${Array.isArray(x.value) ? x.value.join(" | ") : typeof x.value === "boolean" ? (x.value ? "Yes" : "No") : x.value && typeof x.value === "object" ? `[file] ${x.value.name}` : x.value}`)
         .join("\n")
         .replace(/"/g, '""')}"`,
     ]);
@@ -737,7 +739,7 @@ export default function EventsAdminPage() {
   async function loadSitePartners() {
     setSitePartnersLoading(true);
     try {
-      const res = await fetch("/api/admin/partners", { cache: "no-store" });
+      const res = await adminFetch("/api/admin/partners", { cache: "no-store" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !Array.isArray(json.data)) {
         throw new Error(json.error || `HTTP ${res.status}`);
@@ -753,7 +755,7 @@ export default function EventsAdminPage() {
   async function saveSitePartner(partner: SitePartner) {
     try {
       const isNew = !partner.id;
-      const res = await fetch("/api/admin/partners", {
+      const res = await adminFetch("/api/admin/partners", {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(partner),
@@ -771,7 +773,7 @@ export default function EventsAdminPage() {
   async function deleteSitePartner(id: string) {
     if (!confirm("Permanently delete this website partner?")) return;
     try {
-      const res = await fetch(`/api/admin/partners?id=${encodeURIComponent(id)}`, {
+      const res = await adminFetch(`/api/admin/partners?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       const json = await res.json();
@@ -951,6 +953,62 @@ export default function EventsAdminPage() {
     update("partners", current);
   }
 
+  async function loadFormTemplates() {
+    try {
+      const res = await adminFetch("/api/admin/form-templates", { cache: "no-store" });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(json.data)) setFormTemplates(json.data);
+    } catch {
+      // Templates are optional; the builder works without them.
+    }
+  }
+
+  async function saveFormTemplate(name: string, schema: ApplicationForm) {
+    try {
+      const res = await adminFetch("/api/admin/form-templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, schema }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+      showToast(`Template “${name}” saved. You can start any event's form from it.`);
+      await loadFormTemplates();
+    } catch (err: any) {
+      showToast(err.message || "Could not save the template", "error");
+    }
+  }
+
+  async function deleteFormTemplate(id: string) {
+    try {
+      const res = await adminFetch(`/api/admin/form-templates?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (res.status !== 404 && (!res.ok || !json.success)) throw new Error(json.error || `HTTP ${res.status}`);
+      showToast("Template deleted.");
+      await loadFormTemplates();
+    } catch (err: any) {
+      showToast(err.message || "Could not delete the template", "error");
+    }
+  }
+
+  // Applicant uploads are admin-only: fetch with the sign-in token, then save.
+  async function downloadApplicantFile(fileId: string, name: string) {
+    try {
+      const res = await adminFetch(`/api/admin/applications/files/${encodeURIComponent(fileId)}`);
+      if (!res.ok) throw new Error(`Download failed (HTTP ${res.status})`);
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (err: any) {
+      showToast(err.message || "Could not download the file", "error");
+    }
+  }
+
   // Saves only the application form, straight to the database.
   async function saveApplicationForm(next: ApplicationForm | null) {
     if (!selectedId) {
@@ -959,7 +1017,7 @@ export default function EventsAdminPage() {
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/events", {
+      const res = await adminFetch("/api/admin/events", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: selectedId, application_form: next }),
@@ -989,7 +1047,7 @@ export default function EventsAdminPage() {
     }
     if (removed?.name && !confirm(`Remove "${removed.name}" from this event? This is saved immediately.`)) return;
     try {
-      const res = await fetch("/api/admin/events", {
+      const res = await adminFetch("/api/admin/events", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: selectedId, partners: current }),
@@ -2982,6 +3040,12 @@ export default function EventsAdminPage() {
                     notify={showToast}
                     onChange={(next) => update("application_form", next)}
                     onSave={(next) => saveApplicationForm(next)}
+                    templates={formTemplates}
+                    otherEvents={events
+                      .filter((ev) => ev.id !== selectedId && parseForm(ev.application_form))
+                      .map((ev) => ({ id: ev.id as string, title: ev.title, form: parseForm(ev.application_form) as ApplicationForm }))}
+                    onSaveTemplate={saveFormTemplate}
+                    onDeleteTemplate={deleteFormTemplate}
                   />
                 )}
 
@@ -3591,7 +3655,18 @@ export default function EventsAdminPage() {
                           <div key={id}>
                             <div style={{ fontSize: "0.78rem", color: "var(--cms-text-muted)", marginBottom: 2 }}>{a.label}</div>
                             <div className="cms-dossier-prose" style={{ whiteSpace: "pre-wrap" }}>
-                              {Array.isArray(a.value)
+                              {a.value && typeof a.value === "object" && !Array.isArray(a.value) && (a.value as any).fileId ? (
+                                <span style={{ display: "inline-flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+                                  <span>📎 {(a.value as any).name} <small style={{ opacity: 0.6 }}>({Math.max(1, Math.round(((a.value as any).size || 0) / 1024))} KB)</small></span>
+                                  <button
+                                    className="cms-btn cms-btn-secondary"
+                                    style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+                                    onClick={() => downloadApplicantFile((a.value as any).fileId, (a.value as any).name)}
+                                  >
+                                    Download
+                                  </button>
+                                </span>
+                              ) : Array.isArray(a.value)
                                 ? a.value.join(", ") || "—"
                                 : typeof a.value === "boolean"
                                 ? a.value ? "Yes" : "No"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,9 @@ function clean(body: any) {
 const fail = (error: any, status = 500) =>
   NextResponse.json({ success: false, error: error?.message || String(error) }, { status });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     // The CMS list keeps the image as a short reference, never the base64.
     const rows = await query(
@@ -48,6 +51,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const f = clean(await req.json());
     if (!f.image_url) return fail("A photo is required.", 400);
@@ -68,6 +73,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     if (!body.id) return fail("Slide id is required.", 400);
@@ -88,6 +95,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAdmin(req);
+  if (denied) return denied;
   try {
     const id = new URL(req.url).searchParams.get("id");
     if (!id) return fail("Slide id is required.", 400);

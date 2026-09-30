@@ -494,7 +494,14 @@
     "errNumber": "Bitte geben Sie eine Zahl ein.",
     "errDate": "Bitte wählen Sie ein gültiges Datum.",
     "errOption": "Bitte wählen Sie eine der angebotenen Optionen.",
-    "errTooShort": "Bitte schreiben Sie mindestens {min} Zeichen."
+    "errTooShort": "Bitte schreiben Sie mindestens {min} Zeichen.",
+    "errFileType": "Dieser Dateityp wird nicht akzeptiert. Erlaubt: {types}.",
+    "errFileSize": "Die Datei ist zu groß. Das Limit beträgt {mb} MB.",
+    "fileHint": "Erlaubt: {types} · bis zu {mb} MB",
+    "chooseLabel": "Datei wählen",
+    "removeFile": "Entfernen",
+    "removeLabel": "Entfernen",
+    "uploadingFile": "Wird hochgeladen…"
   },
   "eventsList": {
     "eyeline": "ABCN · Veranstaltungen & Programme",

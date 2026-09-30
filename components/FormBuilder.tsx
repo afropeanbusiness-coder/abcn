@@ -15,6 +15,7 @@ import {
   type FormField,
   type FormOption,
   type FormStep,
+  type ShowIf,
 } from "@/lib/application-form";
 
 /**
@@ -33,6 +34,11 @@ type Props = {
   saving: boolean;
   onChange: (next: ApplicationForm | null) => void;
   onSave: (next: ApplicationForm | null) => void;
+  /** Saved templates + forms already used by other events, to start from. */
+  templates: { id: string; name: string; schema: ApplicationForm }[];
+  otherEvents: { id: string; title: string; form: ApplicationForm }[];
+  onSaveTemplate: (name: string, form: ApplicationForm) => void;
+  onDeleteTemplate: (id: string) => void;
   notify: (text: string, type?: "success" | "error") => void;
 };
 
@@ -55,6 +61,15 @@ export function validateFormForSave(form: ApplicationForm): string | null {
         if (new Set(vals).size !== vals.length) return `“${f.label}” has two choices with the same text.`;
       }
     }
+  }
+  const order = allFields(form).map((f) => f.id);
+  for (const f of allFields(form)) {
+    if (!f.showIf) continue;
+    if (f.core && REQUIRED_CORE.includes(f.core)) return `“${f.label}” must always be shown, so it cannot have a condition.`;
+    const at = order.indexOf(f.showIf.field);
+    if (at < 0) return `“${f.label}” depends on a question that no longer exists. Edit or remove its condition.`;
+    if (at >= order.indexOf(f.id)) return `“${f.label}” can only depend on a question that comes before it.`;
+    if (f.showIf.op !== "filled" && !(f.showIf.value ?? "").trim()) return `“${f.label}”: choose the answer that shows this question.`;
   }
   const cores = new Set(allFields(form).map((f) => f.core));
   for (const k of REQUIRED_CORE) {
@@ -80,7 +95,7 @@ export function finalizeForm(form: ApplicationForm): ApplicationForm {
   };
 }
 
-export default function FormBuilder({ value, saved, hasGrants, canSaveNow, saving, onChange, onSave, notify }: Props) {
+export default function FormBuilder({ value, saved, hasGrants, canSaveNow, saving, onChange, onSave, templates, otherEvents, onSaveTemplate, onDeleteTemplate, notify }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const dirty = JSON.stringify(value) !== JSON.stringify(saved);
 
@@ -130,7 +145,15 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
     const f = value.steps[si].fields[fi];
     if (f.core && REQUIRED_CORE.includes(f.core)) return notify(`“${CORE_LABELS[f.core]}” is needed to identify an applicant and cannot be removed.`, "error");
     if (!confirm(`Remove the question “${f.label || "Untitled"}”?`)) return;
-    patchStep(si, { fields: value.steps[si].fields.filter((_, j) => j !== fi) });
+    // Questions that depended on this one become always-visible again.
+    commit(
+      value.steps.map((s, i) => ({
+        ...s,
+        fields: (i === si ? s.fields.filter((_, j) => j !== fi) : s.fields).map((x) =>
+          x.showIf?.field === f.id ? { ...x, showIf: undefined } : x
+        ),
+      }))
+    );
   }
 
   function moveToStep(si: number, fi: number, to: number) {
@@ -178,6 +201,32 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
   };
   const row: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" };
 
+  const applyTemplate = (key: string) => {
+    if (!key) return;
+    const [kind, id] = key.split(":");
+    const src = kind === "t" ? templates.find((x) => x.id === id)?.schema : otherEvents.find((x) => x.id === id)?.form;
+    if (!src) return;
+    if (value && !confirm("Replace the current form with this one? Your unsaved changes here will be lost.")) return;
+    onChange(JSON.parse(JSON.stringify(src)));
+    notify("Form copied. Review it, then click Save form.");
+  };
+
+  const templatePicker = (
+    <select defaultValue="" onChange={(e) => { applyTemplate(e.target.value); e.target.value = ""; }} style={{ maxWidth: 280 }}>
+      <option value="">Start from a template or another event…</option>
+      {templates.length > 0 && (
+        <optgroup label="Saved templates">
+          {templates.map((tp) => <option key={tp.id} value={`t:${tp.id}`}>{tp.name}</option>)}
+        </optgroup>
+      )}
+      {otherEvents.length > 0 && (
+        <optgroup label="Copy from another event">
+          {otherEvents.map((ev) => <option key={ev.id} value={`e:${ev.id}`}>{ev.title}</option>)}
+        </optgroup>
+      )}
+    </select>
+  );
+
   if (!value) {
     return (
       <div className="cms-panel" style={{ ...card, display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -187,10 +236,11 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
           change the wording, reorder steps or use other question types for this event, create a custom copy. The default
           form stays as the starting point and other events are not affected.
         </p>
-        <div>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
           <button className="cms-btn cms-btn-primary" onClick={() => onChange(buildDefaultForm(hasGrants))}>
             Customize this form
           </button>
+          {(templates.length > 0 || otherEvents.length > 0) && templatePicker}
         </div>
       </div>
     );
@@ -209,7 +259,19 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
             tick box on the final review step is always shown and cannot be edited.
           </div>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+          {(templates.length > 0 || otherEvents.length > 0) && templatePicker}
+          <button
+            className="cms-btn cms-btn-secondary"
+            onClick={() => {
+              const problem = validateFormForSave(value);
+              if (problem) return notify(problem, "error");
+              const name = prompt("Name this template (e.g. “Standard founder application”):");
+              if (name && name.trim()) onSaveTemplate(name.trim(), finalizeForm(value));
+            }}
+          >
+            Save as template
+          </button>
           <button
             className="cms-btn cms-btn-secondary"
             onClick={() => {
@@ -377,6 +439,20 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
                         </label>
                       </div>
 
+                      {f.type === "file" && (
+                        <p className="cms-hint" style={{ margin: 0 }}>
+                          Applicants can upload PDF, Word, PowerPoint, Excel, text or image files up to 4 MB. Only CMS admins can download them.
+                        </p>
+                      )}
+
+                      {!locked && (
+                        <ConditionEditor
+                          field={f}
+                          earlier={allFields(value).slice(0, allFields(value).findIndex((x) => x.id === f.id)).filter((x) => x.type !== "file")}
+                          onChange={(showIf) => patchField(si, fi, { showIf })}
+                        />
+                      )}
+
                       {CHOICE_TYPES.includes(f.type) && (
                         <div>
                           <label style={{ fontWeight: 600, fontSize: "0.85rem" }}>Choices</label>
@@ -463,6 +539,104 @@ export default function FormBuilder({ value, saved, hasGrants, canSaveNow, savin
       <div>
         <button className="cms-btn cms-btn-secondary" onClick={addStep}>+ Add step</button>
       </div>
+
+      {templates.length > 0 && (
+        <details style={card}>
+          <summary style={{ cursor: "pointer", fontWeight: 600 }}>Manage saved templates ({templates.length})</summary>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+            {templates.map((tp) => (
+              <div key={tp.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{tp.name}</span>
+                <button
+                  className="cms-icon-btn danger"
+                  title="Delete template (events already using it are not affected)"
+                  onClick={() => confirm(`Delete the template “${tp.name}”? Events that already use it keep their form.`) && onDeleteTemplate(tp.id)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+const OP_LABELS: Record<ShowIf["op"], string> = {
+  equals: "is",
+  notEquals: "is not",
+  includes: "includes",
+  filled: "has been answered",
+};
+
+function ConditionEditor({
+  field,
+  earlier,
+  onChange,
+}: {
+  field: FormField;
+  earlier: FormField[];
+  onChange: (c: ShowIf | undefined) => void;
+}) {
+  const c = field.showIf;
+  const src = earlier.find((x) => x.id === c?.field);
+  if (!c) {
+    if (earlier.length === 0) return null;
+    return (
+      <div>
+        <button
+          className="cms-btn cms-btn-secondary"
+          style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+          onClick={() => onChange({ field: earlier[earlier.length - 1].id, op: "filled" })}
+        >
+          + Show this question only if…
+        </button>
+      </div>
+    );
+  }
+  const isChoice = src && ["select", "radio", "checkboxes"].includes(src.type);
+  const ops: ShowIf["op"][] =
+    src?.type === "checkboxes" ? ["includes", "notEquals", "filled"] : isChoice || src?.type === "checkbox" ? ["equals", "notEquals", "filled"] : ["filled", "equals", "notEquals"];
+  return (
+    <div style={{ border: "1px dashed var(--cms-border)", borderRadius: 8, padding: "0.6rem 0.75rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+      <strong style={{ fontSize: "0.82rem" }}>Show only if</strong>
+      <select
+        value={c.field}
+        onChange={(e) => {
+          const next = earlier.find((x) => x.id === e.target.value);
+          onChange({ field: e.target.value, op: next?.type === "checkboxes" ? "includes" : "filled", value: "" });
+        }}
+        style={{ maxWidth: 240 }}
+      >
+        {!src && <option value={c.field}>(missing question)</option>}
+        {earlier.map((x) => (
+          <option key={x.id} value={x.id}>{x.label || "Untitled question"}</option>
+        ))}
+      </select>
+      <select value={c.op} onChange={(e) => onChange({ ...c, op: e.target.value as ShowIf["op"] })}>
+        {ops.map((o) => (
+          <option key={o} value={o}>{OP_LABELS[o]}</option>
+        ))}
+      </select>
+      {c.op !== "filled" &&
+        (isChoice ? (
+          <select value={c.value || ""} onChange={(e) => onChange({ ...c, value: e.target.value })}>
+            <option value="">— choose —</option>
+            {(src?.options || []).map((o) => (
+              <option key={o.value || o.label} value={o.value || o.label}>{o.label}</option>
+            ))}
+          </select>
+        ) : src?.type === "checkbox" ? (
+          <select value={c.value || ""} onChange={(e) => onChange({ ...c, value: e.target.value })}>
+            <option value="">— choose —</option>
+            <option value="yes">Yes (ticked)</option>
+            <option value="no">No (not ticked)</option>
+          </select>
+        ) : (
+          <input type="text" placeholder="exact answer" value={c.value || ""} onChange={(e) => onChange({ ...c, value: e.target.value })} style={{ maxWidth: 180 }} />
+        ))}
+      <button className="cms-icon-btn danger" title="Always show this question" onClick={() => onChange(undefined)}>✕</button>
     </div>
   );
 }

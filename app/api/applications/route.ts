@@ -4,6 +4,9 @@ import {
   allFields,
   buildDefaultForm,
   cleanValue,
+  isVisible,
+  isFileId,
+  type Answers,
   parseForm,
   pickText,
   REQUIRED_CORE,
@@ -49,14 +52,41 @@ export async function POST(req: NextRequest) {
     // The browser is never trusted: every field is re-validated against the
     // form as stored, and unknown properties are ignored.
     const core: Partial<Record<CoreKey, AnswerValue>> = {};
-    const custom: Record<string, { label: string; value: AnswerValue }> = {};
+    const custom: Record<string, { label: string; value: unknown }> = {};
+    const fileIds: string[] = [];
+
+    // Answers as submitted, so conditional questions can be evaluated.
+    const submitted: Answers = {};
     for (const field of allFields(form)) {
-      const raw = field.core ? body[field.core] : answersIn[field.id];
-      const value = cleanValue(field, raw);
+      submitted[field.id] = cleanValue(field, field.core ? body[field.core] : answersIn[field.id]);
+    }
+
+    for (const field of allFields(form)) {
+      // A question hidden by its condition is neither required nor stored.
+      if (!isVisible(field, submitted)) continue;
+      const value = submitted[field.id];
       const err = validateField(field, value);
       if (err) {
         const name = pickText(field.label, field.label_de, "en");
         return fail(`“${name}” is ${err === "required" ? "required" : "not valid"}.`);
+      }
+      if (field.type === "file") {
+        if (!value) continue;
+        // The upload must exist, be for this event + question, and be unclaimed.
+        const f = await query<{ id: string; filename: string; size: number }>(
+          `SELECT id, filename, size FROM application_files
+           WHERE id = $1 AND event_id IS NOT DISTINCT FROM $2 AND field_id = $3 AND application_id IS NULL`,
+          [String(value), resolvedEventId, field.id]
+        );
+        if (!f[0] || !isFileId(String(value))) {
+          return fail(`“${pickText(field.label, field.label_de, "en")}”: the uploaded file was not found. Please upload it again.`);
+        }
+        fileIds.push(f[0].id);
+        custom[field.id] = {
+          label: pickText(field.label, undefined, "en"),
+          value: { fileId: f[0].id, name: f[0].filename, size: f[0].size },
+        };
+        continue;
       }
       if (field.core) core[field.core] = value;
       else custom[field.id] = { label: pickText(field.label, undefined, "en"), value };
@@ -99,6 +129,14 @@ export async function POST(req: NextRequest) {
       ) RETURNING id, submitted_at;`,
       params
     );
+
+    // Claim the uploaded files for this application.
+    if (fileIds.length) {
+      await query("UPDATE application_files SET application_id = $1 WHERE id = ANY($2::uuid[])", [
+        result[0].id,
+        fileIds,
+      ]);
+    }
 
     return NextResponse.json(
       { success: true, data: result[0], message: "Application submitted successfully." },

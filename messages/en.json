@@ -494,7 +494,14 @@
     "errNumber": "Please enter a number.",
     "errDate": "Please choose a valid date.",
     "errOption": "Please choose one of the listed options.",
-    "errTooShort": "Please write at least {min} characters."
+    "errTooShort": "Please write at least {min} characters.",
+    "errFileType": "This file type is not accepted. Allowed: {types}.",
+    "errFileSize": "The file is too large. The limit is {mb} MB.",
+    "fileHint": "Accepted: {types} · up to {mb} MB",
+    "chooseLabel": "Choose file",
+    "removeFile": "Remove",
+    "removeLabel": "Remove",
+    "uploadingFile": "Uploading…"
   },
   "eventsList": {
     "eyeline": "ABCN · Events & programmes",

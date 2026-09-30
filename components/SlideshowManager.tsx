@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-fetch";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
@@ -89,7 +90,7 @@ export default function SlideshowManager({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/slides", { cache: "no-store" });
+      const res = await adminFetch("/api/admin/slides", { cache: "no-store" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !Array.isArray(json.data)) throw new Error(json.error || `HTTP ${res.status}`);
       setSlides(json.data);
@@ -106,7 +107,7 @@ export default function SlideshowManager({
 
   async function call(method: string, body?: unknown, query = ""): Promise<boolean> {
     try {
-      const res = await fetch(`/api/admin/slides${query}`, {
+      const res = await adminFetch(`/api/admin/slides${query}`, {
         method,
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,

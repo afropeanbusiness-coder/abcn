@@ -293,14 +293,36 @@ export default function EventsAdminPage() {
     }
   }
 
-  // Resilient events loader: tries internal API route first, then PostgREST fallback
+  // The CMS must show what is stored, not what the public site would fall back
+  // to. normaliseEvent pads a row with seeded defaults for display; for the
+  // lists an editor deletes from (partners, gallery) the stored value is used
+  // as-is so a deletion is visible, and saved, exactly as made.
+  function toFormRow(r: any): EventRecord {
+    const base = normaliseEvent(r);
+    const list = (v: any) => (Array.isArray(v) ? v : []);
+    return {
+      ...base,
+      partners: list(r.partners).map((p: any) => ({
+        name: p?.name || "",
+        logo: p?.logo || p?.logo_url || "",
+        website: p?.website || p?.website_url || "",
+        tier: p?.tier || undefined,
+        tagline: p?.tagline || undefined,
+      })),
+      gallery: list(r.gallery),
+    };
+  }
+
+  // Events loader: reads the database through the internal API. The old
+  // PostgREST fallback is gone; it could show a stale or seeded copy that then
+  // got saved back over the real data.
   async function loadEvents() {
     try {
-      const res = await fetch("/api/admin/events");
+      const res = await fetch("/api/admin/events", { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
-          const rows = json.data.map((r: any) => normaliseEvent(r));
+          const rows = json.data.map((r: any) => toFormRow(r));
           setEvents(rows);
           if (rows.length && !selectedId) {
             setSelectedId(rows[0].id);
@@ -311,23 +333,10 @@ export default function EventsAdminPage() {
         }
       }
     } catch {
-      // Fall through to neon client fallback
+      // Reported below.
     }
 
-    try {
-      const { data } = await neon.from("events").select("*").order("priority", { ascending: false });
-      if (data) {
-        const rows = (data as any[]).map((row) => normaliseEvent(row));
-        setEvents(rows);
-        if (rows.length && !selectedId) {
-          setSelectedId(rows[0].id);
-          setForm({ ...rows[0] });
-          loadEventApplications(rows[0].id);
-        }
-      }
-    } catch (err: any) {
-      showToast(err.message || "Could not fetch events list", "error");
-    }
+    showToast("Could not load events from the database. Reload the page to retry.", "error");
   }
 
   // Resilient applications loader
@@ -496,51 +505,24 @@ export default function EventsAdminPage() {
 
       let savedItem: any = null;
 
-      if (selectedId) {
-        // Direct API route PUT
-        const res = await fetch("/api/admin/events", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: selectedId, ...payload }),
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          savedItem = json.data;
-        } else {
-          // Fallback to neon client
-          const { data, error: q } = await neon
-            .from("events")
-            .update(payload)
-            .eq("id", selectedId)
-            .select();
-          if (q) throw q;
-          savedItem = (data as any)?.[0];
-        }
-        showToast("Event changes saved successfully.");
-      } else {
-        // Direct API route POST
-        const res = await fetch("/api/admin/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          savedItem = json.data;
-        } else {
-          // Fallback to neon client
-          const { data, error: q } = await neon.from("events").insert(payload).select();
-          if (q) throw q;
-          savedItem = (data as any)?.[0];
-        }
-
-        if (savedItem?.id) {
-          setSelectedId(savedItem.id);
-        }
-        showToast("New event created.");
+      // One write path, and it must succeed: a failed request is an error,
+      // never a "saved" toast. (A silent second path used to swallow failures,
+      // which is why deletions appeared to work but never reached the database.)
+      const res = await fetch("/api/admin/events", {
+        method: selectedId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedId ? { id: selectedId, ...payload } : payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.error || `Save failed (HTTP ${res.status}). Nothing was written to the database.`);
       }
+      savedItem = json.data;
+
+      if (!selectedId && savedItem?.id) {
+        setSelectedId(savedItem.id);
+      }
+      showToast(selectedId ? "Event saved to the database." : "New event created.");
 
       await loadEvents();
     } catch (err: any) {
@@ -557,8 +539,8 @@ export default function EventsAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) {
-        const { error: q } = await neon.from("events").delete().eq("id", selectedId);
-        if (q) throw q;
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || `Delete failed (HTTP ${res.status}). The event was not removed.`);
       }
       setConfirmDeleteId(null);
       newEvent();
@@ -745,11 +727,12 @@ export default function EventsAdminPage() {
   async function loadSitePartners() {
     setSitePartnersLoading(true);
     try {
-      const res = await fetch("/api/admin/partners");
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) setSitePartners(json.data);
+      const res = await fetch("/api/admin/partners", { cache: "no-store" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(json.data)) {
+        throw new Error(json.error || `HTTP ${res.status}`);
       }
+      setSitePartners(json.data);
     } catch {
       showToast("Failed to load website partners", "error");
     } finally {
@@ -782,9 +765,10 @@ export default function EventsAdminPage() {
         method: "DELETE",
       });
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || "Delete failed");
-      showToast("Website partner deleted.");
-      setSitePartners((prev) => prev.filter((p) => p.id !== id));
+      // 404 means it is already gone from the database, which is what was asked.
+      if (res.status !== 404 && (!res.ok || !json.success)) throw new Error(json.error || "Delete failed");
+      showToast("Website partner deleted from the database.");
+      await loadSitePartners();
     } catch (err: any) {
       showToast(err.message || "Failed to delete partner", "error");
     }
@@ -957,11 +941,32 @@ export default function EventsAdminPage() {
     update("partners", current);
   }
 
-  function removePartner(index: number) {
+  async function removePartner(index: number) {
     const current = [...(form.partners || [])];
-    current.splice(index, 1);
-    update("partners", current);
-    showToast("Partner removed.");
+    const [removed] = current.splice(index, 1);
+    // A brand-new, unsaved event has nothing in the database to delete from.
+    if (!selectedId) {
+      update("partners", current);
+      showToast("Partner removed.");
+      return;
+    }
+    if (removed?.name && !confirm(`Remove "${removed.name}" from this event? This is saved immediately.`)) return;
+    try {
+      const res = await fetch("/api/admin/events", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedId, partners: current }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
+        throw new Error(json.error || `Could not remove partner (HTTP ${res.status}). Nothing was changed.`);
+      }
+      update("partners", current);
+      setEvents((prev) => prev.map((ev) => (ev.id === selectedId ? { ...ev, partners: current } : ev)));
+      showToast(`Removed ${removed?.name || "partner"} from the database.`);
+    } catch (err: any) {
+      showToast(err.message || "Could not remove partner", "error");
+    }
   }
 
   function movePartner(index: number, direction: "up" | "down") {

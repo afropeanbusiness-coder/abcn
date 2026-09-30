@@ -18,7 +18,7 @@ const FAQ_QUESTION_KEYS: number[] = [
 
 // Literal by requirement: Next reads this without evaluating imports.
 // Keep in step with EVENTS_REVALIDATE in lib/events-server.ts.
-export const revalidate = 3600;
+export const revalidate = 60;
 
 /**
  * Title, description, social preview and structured data are all read from the

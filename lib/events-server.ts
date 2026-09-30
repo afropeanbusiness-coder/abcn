@@ -10,7 +10,7 @@ import { EventRecord, fallbackEvent, normaliseEvent } from "@/lib/events";
  * Direct Postgres queries via Neon connection pooler provide instant, zero-cold-start
  * reads, with graceful fallbacks to PostgREST and the seeded FIALI programme.
  */
-export const EVENTS_REVALIDATE = 3600;
+export const EVENTS_REVALIDATE = 60;
 
 export async function getPublishedEvents(locale: string = "en"): Promise<EventRecord[]> {
   // Strategy 1: Direct Postgres pooler query (fastest, no 503 gateway timeouts)

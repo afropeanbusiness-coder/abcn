@@ -13,58 +13,6 @@ interface ProminentSupportersProps {
   showMarquee?: boolean;
 }
 
-export const MAJOR_FINANCIAL_SUPPORTERS: EventPartner[] = [
-  {
-    name: "Wirtschaftsförderung Frankfurt",
-    logo: "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png",
-    website: "https://frankfurt-business.net",
-    tier: "financial_supporter",
-    tagline: "Wirtschaftsförderung der Stadt Frankfurt am Main",
-  },
-  {
-    name: "Kompass Frankfurt",
-    logo: "/assets/fiali/logos/kompass-frankfurt.png",
-    website: "https://kompassfrankfurt.de",
-    tier: "financial_supporter",
-    tagline: "Zentrum für Existenzgründungen Frankfurt",
-  },
-  {
-    name: "Frankfurt Forward",
-    logo: "/assets/fiali/logos/frankfurt-forward.png",
-    website: "https://frankfurt-forward.de",
-    tier: "financial_supporter",
-    tagline: "Startup-Matchmaking & Innovation Frankfurt",
-  },
-  {
-    name: "DIWOC Rising",
-    logo: "/assets/fiali/logos/divoc-rising.png",
-    website: "https://diwoc-rising.com",
-    tier: "financial_supporter",
-    tagline: "Diversity in Women of Color Initiative",
-  },
-];
-
-export const ECOSYSTEM_COMMUNITY_PARTNERS: EventPartner[] = [
-  {
-    name: "Black Women in Tech DACH",
-    logo: "/assets/fiali/logos/black-women-in-tech-dach.png",
-    website: "https://bwit-dach.org",
-    tier: "ecosystem_partner",
-  },
-  {
-    name: "Flourish & Prosper",
-    logo: "/assets/fiali/logos/flourish-prosper.png",
-    website: "https://flourishandprosper.org",
-    tier: "ecosystem_partner",
-  },
-  {
-    name: "ABCN (Afropean Business & Culture Network)",
-    logo: "/assets/fiali/logos/abcn.png",
-    website: "https://afropeanbusiness.com",
-    tier: "ecosystem_partner",
-  },
-];
-
 export default function ProminentSupporters({
   partners,
   locale = "en",
@@ -83,25 +31,24 @@ export default function ProminentSupporters({
   };
 
   // Determine major financial supporters: either from prop or defaults
+  // Only what the CMS provides is ever shown. There is deliberately no
+  // built-in default list: a default would bring back partners an editor had
+  // deleted.
   const majorSupporters = React.useMemo(() => {
-    if (partners && partners.length >= 4) {
-      const explicit = partners.filter((p) => p.tier === "financial_supporter");
-      if (explicit.length >= 4) return explicit;
-      // If not flagged with tier, take the first 4 partners as requested
-      return partners.slice(0, 4);
-    }
-    return MAJOR_FINANCIAL_SUPPORTERS;
+    const list = partners ?? [];
+    const explicit = list.filter((p) => p.tier === "financial_supporter");
+    if (explicit.length > 0) return explicit;
+    // Untiered lists: the first four are the headline supporters.
+    return list.length >= 4 ? list.slice(0, 4) : [];
   }, [partners]);
 
-  const ecosystemPartners = React.useMemo(() => {
-    if (partners && partners.length > 4) {
-      const remaining = partners.filter(
+  const ecosystemPartners = React.useMemo(
+    () =>
+      (partners ?? []).filter(
         (p) => !majorSupporters.some((m) => m.name.toLowerCase() === p.name.toLowerCase())
-      );
-      if (remaining.length > 0) return remaining;
-    }
-    return ECOSYSTEM_COMMUNITY_PARTNERS;
-  }, [partners, majorSupporters]);
+      ),
+    [partners, majorSupporters]
+  );
 
   const allPartnersCombined = React.useMemo(() => {
     return [...majorSupporters, ...ecosystemPartners];
@@ -110,6 +57,7 @@ export default function ProminentSupporters({
   return (
     <div className={`prominent-supporters-wrapper ${className}`} style={{ width: "100%" }}>
       {/* Tier 1: Major Financial Supporters */}
+      {majorSupporters.length > 0 && (
       <div
         className="major-supporters-tier"
         style={{
@@ -298,6 +246,7 @@ export default function ProminentSupporters({
           })}
         </div>
       </div>
+      )}
 
       {/* Tier 2: Strategic & Community Network */}
       {ecosystemPartners.length > 0 && (
@@ -337,7 +286,7 @@ export default function ProminentSupporters({
       )}
 
       {/* Infinite scrolling marquee of all partners */}
-      {showMarquee && (
+      {showMarquee && allPartnersCombined.length > 0 && (
         <div className="partner-scroller-wrap" style={{ marginTop: "12px" }}>
           <LogoMarquee
             logos={allPartnersCombined}

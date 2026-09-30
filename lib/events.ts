@@ -433,22 +433,24 @@ export function normaliseEvent(
     stages: pick(r, "stages", locale, base.stages || [], seeded),
     eligibility: pick(r, "eligibility", locale, base.eligibility || [], seeded),
     partners: (() => {
-      const raw =
-        Array.isArray(row.partners) && row.partners.length > 0
-          ? row.partners
-          : seeded
-          ? FIALI_FALLBACK.partners
-          : [];
+      // An array from the CMS is authoritative even when empty or partly
+      // deleted. The seeded programme is used only when the row has no
+      // partners value at all, never to refill a list an editor emptied.
+      const raw = Array.isArray(row.partners)
+        ? row.partners
+        : seeded
+        ? FIALI_FALLBACK.partners
+        : [];
       if (!Array.isArray(raw)) return [];
-      const hasAnyLogo = raw.some((p: any) => p && (p.logo || p.logo_url));
-      if (!hasAnyLogo && seeded && FIALI_FALLBACK.partners) {
-        return FIALI_FALLBACK.partners;
-      }
-      return raw.map((p: any) => ({
-        name: p.name || "",
-        logo: p.logo || p.logo_url || "",
-        website: p.website || p.website_url || "",
-      }));
+      return raw
+        .filter((p: any) => p && p.name)
+        .map((p: any) => ({
+          name: p.name || "",
+          logo: p.logo || p.logo_url || "",
+          website: p.website || p.website_url || "",
+          tier: p.tier || undefined,
+          tagline: p.tagline || undefined,
+        }));
     })(),
     grants: pick(r, "grants", locale, base.grants, seeded),
     gallery: (() => {

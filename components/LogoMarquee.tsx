@@ -64,14 +64,17 @@ export default function LogoMarquee({
   speed = "normal",
   className = "",
 }: LogoMarqueeProps) {
-  const [fetchedLogos, setFetchedLogos] = useState<EventPartner[]>([]);
+  // null = still loading, so deleted partners are never flashed from a default.
+  const [fetchedLogos, setFetchedLogos] = useState<EventPartner[] | null>(null);
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   useEffect(() => {
     let live = true;
     fetch("/api/partners")
       .then((res) => res.json())
       .then((json) => {
-        if (live && json?.data?.length) {
+        if (!live) return;
+        if (json?.success && Array.isArray(json.data)) {
           setFetchedLogos(
             json.data.map((p: any) => ({
               name: p.name,
@@ -79,25 +82,24 @@ export default function LogoMarquee({
               website: p.website_url || p.website || "",
             }))
           );
+        } else {
+          setFetchFailed(true);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (live) setFetchFailed(true);
+      });
     return () => {
       live = false;
     };
   }, []);
 
   const activeLogos = useMemo(() => {
-    if (logos && logos.length > 0) {
-      const withLogos = logos.filter((p) => p && Boolean(p.logo));
-      if (withLogos.length > 0) return withLogos;
-    }
-    if (fetchedLogos && fetchedLogos.length > 0) {
-      const withLogos = fetchedLogos.filter((p) => p && Boolean(p.logo));
-      if (withLogos.length > 0) return withLogos;
-    }
-    return DEFAULT_FIALI_PARTNERS;
-  }, [logos, fetchedLogos]);
+    if (logos && logos.length > 0) return logos.filter((p) => p && p.name);
+    if (fetchedLogos) return fetchedLogos.filter((p) => p && p.name);
+    // Defaults only when the CMS could not be reached at all.
+    return fetchFailed ? DEFAULT_FIALI_PARTNERS : [];
+  }, [logos, fetchedLogos, fetchFailed]);
 
   // Duplicate items to ensure seamless continuous CSS infinite scroll
   const duplicatedLogos = useMemo(() => {
@@ -111,6 +113,8 @@ export default function LogoMarquee({
     styles[speed],
     className,
   ].filter(Boolean).join(" ");
+
+  if (activeLogos.length === 0) return null;
 
   return (
     <div className={wrapClasses} aria-label="Partner organizations logo ticker">

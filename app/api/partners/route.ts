@@ -11,14 +11,13 @@ export async function GET() {
        WHERE active = true 
        ORDER BY priority ASC, created_at ASC`
     );
-    if (rows && rows.length > 0) {
-      return NextResponse.json({ success: true, data: rows });
-    }
+    // An empty table is a real answer: the editor removed every partner.
+    return NextResponse.json({ success: true, data: rows ?? [] });
   } catch (error: any) {
     console.error("GET /api/partners error:", error);
   }
 
-  // Graceful verified fallback partners with bundled high-res logos
+  // Database unreachable only: show the bundled partners rather than nothing.
   return NextResponse.json({
     success: true,
     data: [

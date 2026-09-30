@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import MultiStepApplication from "@/components/MultiStepApplication";
 import NavExtras from "@/components/NavExtras";
 import LogoMarquee from "@/components/LogoMarquee";
-import ProminentSupporters, { MAJOR_FINANCIAL_SUPPORTERS } from "@/components/ProminentSupporters";
+import ProminentSupporters from "@/components/ProminentSupporters";
 import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import Img from "@/components/Img";
@@ -270,7 +270,7 @@ export default function EventDetailPage() {
               gap: "12px",
               flexWrap: "wrap"
             }}>
-              {(event.partners && event.partners.length >= 4 ? event.partners.slice(0, 4) : MAJOR_FINANCIAL_SUPPORTERS).map((s, idx) => (
+              {(event.partners ?? []).slice(0, 4).map((s, idx) => (
                 <a
                   key={s.name + idx}
                   href={s.website || "#"}

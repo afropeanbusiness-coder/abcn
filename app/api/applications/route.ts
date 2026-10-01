@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { sendEmail, buildApplicationConfirmationHtml } from "@/lib/email";
 import {
   allFields,
   buildDefaultForm,
@@ -31,19 +32,21 @@ export async function POST(req: NextRequest) {
 
     // Resolve the event, and with it the form this event actually uses.
     let resolvedEventId: string | null = eventId || null;
+    let eventTitle = "ABCN Flagship Programme";
     let storedForm: unknown = null;
     {
       const rows = resolvedEventId
-        ? await query<{ id: string; application_form: unknown }>(
-            "SELECT id, application_form FROM events WHERE id = $1 LIMIT 1",
+        ? await query<{ id: string; title: string; application_form: unknown }>(
+            "SELECT id, title, application_form FROM events WHERE id = $1 LIMIT 1",
             [resolvedEventId]
           )
-        : await query<{ id: string; application_form: unknown }>(
-            "SELECT id, application_form FROM events WHERE slug = $1 LIMIT 1",
+        : await query<{ id: string; title: string; application_form: unknown }>(
+            "SELECT id, title, application_form FROM events WHERE slug = $1 LIMIT 1",
             [eventSlug || "fiali-frankfurt-2026"]
           );
       if (rows.length > 0) {
         resolvedEventId = rows[0].id;
+        eventTitle = rows[0].title || eventTitle;
         storedForm = rows[0].application_form;
       }
     }
@@ -136,6 +139,42 @@ export async function POST(req: NextRequest) {
         result[0].id,
         fileIds,
       ]);
+    }
+
+    // Dispatch branded confirmation email with response summary to applicant
+    try {
+      const applicantEmail = s("email").toLowerCase();
+      const confirmationHtml = buildApplicationConfirmationHtml({
+        applicantId: result[0].id,
+        eventTitle,
+        firstName: s("firstName"),
+        lastName: s("lastName"),
+        email: applicantEmail,
+        phone: s("phone"),
+        city: s("location") || body.city || "Frankfurt am Main",
+        country: body.country || "DE",
+        companyName: s("companyName"),
+        companyWebsite: s("companyUrl"),
+        roleTitle: s("jobTitle"),
+        businessModel: s("sector"),
+        ventureStage: s("stage"),
+        aiInterest: s("aiFocus"),
+        motivation: s("motivation"),
+        goals: s("grantInterest"),
+        customAnswers: Object.keys(custom).length ? custom : undefined,
+        submittedAt: result[0].submitted_at || new Date().toISOString(),
+      });
+
+      sendEmail({
+        to: applicantEmail,
+        subject: `Application Received: ${eventTitle} — ABCN`,
+        html: confirmationHtml,
+        bcc: process.env.ADMIN_NOTIFY_EMAIL || "afropeanbusiness@gmail.com",
+      }).catch((emailErr) => {
+        console.error("[Application Confirmation Email Failed]:", emailErr);
+      });
+    } catch (emailBuildErr) {
+      console.error("[Application Confirmation Email Build Error]:", emailBuildErr);
     }
 
     return NextResponse.json(

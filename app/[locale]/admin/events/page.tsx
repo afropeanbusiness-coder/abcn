@@ -17,10 +17,18 @@ import FormBuilder from "@/components/FormBuilder";
 import { parseForm, type ApplicationForm } from "@/lib/application-form";
 
 type Mode = "checking" | "signed-out" | "needs-admin" | "admin";
-type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media";
+type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media" | "admins";
 type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "form" | "applicants";
 type Editable = EventRecord & { id?: string };
 type AdminTheme = "dark" | "light";
+
+export type AdminUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string | null;
+  createdAt: string;
+};
 
 export type SitePartner = {
   id?: string;
@@ -178,6 +186,7 @@ export default function EventsAdminPage() {
   const [events, setEvents] = useState<Editable[]>([]);
   const [form, setForm] = useState<Editable>(blankEvent());
   const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [eventsSearch, setEventsSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -219,10 +228,18 @@ export default function EventsAdminPage() {
   const [copiedAsset, setCopiedAsset] = useState<string | null>(null);
   const [mediaUploadPreview, setMediaUploadPreview] = useState<string | null>(null);
 
-  // Deletion Confirm Modal State
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
   const [rawJsonMode, setRawJsonMode] = useState(false);
+
+  // Administrator User Directory & Invite State
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminUsersLoading, setAdminUsersLoading] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    sendInvite: true,
+  });
 
   useEffect(() => {
     const saved = typeof window !== "undefined" ? (localStorage.getItem("abcn-admin-theme") as AdminTheme | null) : null;
@@ -295,7 +312,7 @@ export default function EventsAdminPage() {
       const role = String(user.role || "");
       if (role.includes("admin")) {
         setMode("admin");
-        await Promise.all([loadEvents(), loadAllApplications(), loadSitePartners(), loadFormTemplates()]);
+        await Promise.all([loadEvents(), loadAllApplications(), loadSitePartners(), loadFormTemplates(), loadAdminUsers()]);
       } else {
         setMode("needs-admin");
       }
@@ -820,6 +837,92 @@ export default function EventsAdminPage() {
     await saveSitePartner(updated);
   }
 
+  // Administrator User Directory & Management
+  async function loadAdminUsers() {
+    setAdminUsersLoading(true);
+    try {
+      const res = await adminFetch("/api/admin/users", { cache: "no-store" });
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(json.data)) {
+        throw new Error(json.error || `HTTP ${res.status}`);
+      }
+      setAdminUsers(json.data);
+    } catch {
+      showToast("Failed to load admin users", "error");
+    } finally {
+      setAdminUsersLoading(false);
+    }
+  }
+
+  function generateAdminPassword() {
+    const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%&*";
+    let pass = "";
+    for (let i = 0; i < 14; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewAdminForm((prev) => ({ ...prev, password: pass }));
+    showToast("Generated secure temporary password.");
+  }
+
+  async function createAdminUser(e: FormEvent) {
+    e.preventDefault();
+    if (!newAdminForm.email || !newAdminForm.password) {
+      showToast("Email and password are required", "error");
+      return;
+    }
+    setAdminUsersLoading(true);
+    try {
+      const res = await adminFetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAdminForm),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to create administrator");
+      }
+      showToast(json.message || "Administrator account created successfully!");
+      setAdminModalOpen(false);
+      setNewAdminForm({ name: "", email: "", password: "", sendInvite: true });
+      await loadAdminUsers();
+    } catch (err: any) {
+      showToast(err.message || "Failed to create administrator", "error");
+    } finally {
+      setAdminUsersLoading(false);
+    }
+  }
+
+  async function deleteAdminUser(id: string, email: string) {
+    if (email === currentUser?.email) {
+      showToast("You cannot revoke your own administrator access.", "error");
+      return;
+    }
+    if (!confirm(`Are you sure you want to revoke administrator access for ${email}?`)) {
+      return;
+    }
+    setAdminUsersLoading(true);
+    try {
+      const res = await adminFetch(`/api/admin/users?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to delete administrator");
+      }
+      showToast(`Revoked administrator access for ${email}.`);
+      await loadAdminUsers();
+    } catch (err: any) {
+      showToast(err.message || "Failed to delete administrator", "error");
+    } finally {
+      setAdminUsersLoading(false);
+    }
+  }
+
   // Interactive Configurable Event Gallery Helpers
   function addGalleryItem() {
     const current = (form.gallery as EventGalleryItem[]) || [];
@@ -1254,7 +1357,11 @@ export default function EventsAdminPage() {
       <main className="cms" data-theme={adminTheme}>
         <header className="cms-top">
           <div className="cms-brand">
-            <span className="cms-logo-badge">A</span>
+            <img
+              src="/assets/abcn/abcn-emblem.png"
+              alt="ABCN Emblem"
+              style={{ width: 34, height: 34, objectFit: "contain", borderRadius: "8px" }}
+            />
             <div className="cms-brand-text">
               <h1>ABCN Executive Portal</h1>
               <span>Control Center</span>
@@ -1294,7 +1401,13 @@ export default function EventsAdminPage() {
             <div className="cms-loader-emblem-wrap">
               <div className="cms-loader-ring-outer" />
               <div className="cms-loader-ring-inner" />
-              <div className="cms-loader-core-badge">A</div>
+              <div className="cms-loader-core-badge" style={{ padding: 6, background: "transparent", border: "none" }}>
+                <img
+                  src="/assets/abcn/abcn-emblem.png"
+                  alt="ABCN"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                />
+              </div>
             </div>
 
             <span className="cms-loader-eyebrow">Executive Gateway</span>
@@ -1353,7 +1466,11 @@ export default function EventsAdminPage() {
       <main className="cms">
         <header className="cms-top">
           <div className="cms-brand">
-            <span className="cms-logo-badge">A</span>
+            <img
+              src="/assets/abcn/abcn-emblem.png"
+              alt="ABCN Emblem"
+              style={{ width: 34, height: 34, objectFit: "contain", borderRadius: "8px" }}
+            />
             <div className="cms-brand-text">
               <h1>ABCN Executive Portal</h1>
               <span>Control Center</span>
@@ -1367,36 +1484,27 @@ export default function EventsAdminPage() {
         <div className="cms-auth-container">
           <div className="cms-auth-box">
             <div className="cms-auth-logo-center">
-              <span className="cms-logo-badge" style={{ width: 48, height: 48, fontSize: "1.2rem" }}>
-                A
-              </span>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.25rem" }}>
+                <img
+                  src="/assets/abcn/abcn-logo.png"
+                  alt="ABCN Logo"
+                  style={{ maxWidth: "210px", height: "auto", objectFit: "contain" }}
+                />
+              </div>
               <h2>Admin Authentication</h2>
-              <p>Sign in with your administrator credentials to manage events & applications.</p>
+              <p>Sign in with your administrator credentials to access the Executive Control Center.</p>
             </div>
 
             <form onSubmit={signIn} className="cms-field" style={{ gap: "1rem" }}>
-              <div className="cms-field">
-                <label>Name (New accounts only)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Harmonie Essome"
-                  value={authForm.name}
-                  onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                />
-              </div>
-
               <div className="cms-field">
                 <label>Administrator Email *</label>
                 <input
                   type="email"
                   required
-                  placeholder="afropeanbusiness@gmail.com"
+                  placeholder="admin@afropeanbusiness.com"
                   value={authForm.email}
                   onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                 />
-                <span className="cms-hint">
-                  Registered Executive Account: <code>afropeanbusiness@gmail.com</code>
-                </span>
               </div>
 
               <div className="cms-field">
@@ -1411,17 +1519,9 @@ export default function EventsAdminPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
-                <button type="submit" className="cms-btn cms-btn-primary" style={{ flex: 1 }}>
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={signUp}
-                  className="cms-btn cms-btn-secondary"
-                  style={{ flex: 1 }}
-                >
-                  Create Account
+              <div style={{ marginTop: "0.5rem" }}>
+                <button type="submit" className="cms-btn cms-btn-primary" style={{ width: "100%", justifyContent: "center", padding: "11px 18px", fontSize: "0.92rem" }}>
+                  Sign In to Executive Portal →
                 </button>
               </div>
             </form>
@@ -1437,7 +1537,11 @@ export default function EventsAdminPage() {
       <main className="cms">
         <header className="cms-top">
           <div className="cms-brand">
-            <span className="cms-logo-badge">A</span>
+            <img
+              src="/assets/abcn/abcn-emblem.png"
+              alt="ABCN Emblem"
+              style={{ width: 34, height: 34, objectFit: "contain", borderRadius: "8px" }}
+            />
             <div className="cms-brand-text">
               <h1>ABCN Executive Portal</h1>
               <span>One-Time Admin Claim</span>
@@ -1451,7 +1555,11 @@ export default function EventsAdminPage() {
         <div className="cms-auth-container">
           <div className="cms-auth-box">
             <div className="cms-auth-logo-center">
-              <span className="cms-logo-badge">A</span>
+              <img
+                src="/assets/abcn/abcn-emblem.png"
+                alt="ABCN"
+                style={{ width: 48, height: 48, objectFit: "contain", borderRadius: "10px", margin: "0 auto 1rem auto", display: "block" }}
+              />
               <h2>Elevate to Administrator</h2>
               <p>Your account is authenticated. Enter the setup key to unlock the event control room.</p>
             </div>
@@ -1460,12 +1568,11 @@ export default function EventsAdminPage() {
               <div className="cms-field">
                 <label>Setup Key / Token</label>
                 <input
-                  type="text"
-                  placeholder="ABCN2026Admin!"
+                  type="password"
+                  placeholder="Enter administrator authorization key"
                   value={claimToken}
                   onChange={(e) => setClaimToken(e.target.value)}
                 />
-                <span className="cms-hint">Default setup key: ABCN2026Admin!</span>
               </div>
 
               <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -1490,7 +1597,11 @@ export default function EventsAdminPage() {
       <aside className="cms-sidebar">
         <div className="cms-sidebar-header">
           <div className="cms-sidebar-brand">
-            <span className="cms-logo-badge">A</span>
+            <img
+              src="/assets/abcn/abcn-emblem.png"
+              alt="ABCN Emblem"
+              style={{ width: 34, height: 34, objectFit: "contain", borderRadius: "8px" }}
+            />
             <div>
               <h2>ABCN Portal</h2>
               <span className="cms-sidebar-sub">Executive Suite</span>
@@ -1547,6 +1658,16 @@ export default function EventsAdminPage() {
           >
             <span className="cms-nav-icon">🖼️</span>
             <span className="cms-nav-text">Media & Assets</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cms-sidebar-item ${mainTab === "admins" ? "active" : ""}`}
+            onClick={() => setMainTab("admins")}
+          >
+            <span className="cms-nav-icon">🛡️</span>
+            <span className="cms-nav-text">Admins & Team</span>
+            <span className="cms-nav-badge">{adminUsers.length}</span>
           </button>
 
           {/* Contextual in-sidebar navigator when editing an event */}
@@ -1621,6 +1742,7 @@ export default function EventsAdminPage() {
                 {mainTab === "partners" && "Website Partners & Collaborator Network"}
                 {mainTab === "slideshow" && "Homepage Slideshow"}
                 {mainTab === "media" && "Media & Global Asset Manager"}
+                {mainTab === "admins" && "Administrator Directory & Team Access"}
               </h1>
               <span>Executive Control Room · ABCN</span>
             </div>
@@ -1637,6 +1759,19 @@ export default function EventsAdminPage() {
             {mainTab === "events" && (
               <button onClick={newEvent} className="cms-btn cms-btn-primary" style={{ fontSize: "0.82rem" }}>
                 + New Event
+              </button>
+            )}
+            {mainTab === "admins" && (
+              <button
+                type="button"
+                onClick={() => {
+                  generateAdminPassword();
+                  setAdminModalOpen(true);
+                }}
+                className="cms-btn cms-btn-primary"
+                style={{ fontSize: "0.82rem" }}
+              >
+                + Invite Administrator
               </button>
             )}
             {mainTab === "partners" && (
@@ -4325,6 +4460,127 @@ export default function EventsAdminPage() {
             </div>
           </div>
         )}
+
+        {/* =========================================================================
+            VIEW 5: ADMINISTRATOR DIRECTORY & TEAM ACCESS
+            ========================================================================= */}
+        {mainTab === "admins" && (
+          <div className="cms-panel" style={{ padding: "1.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "1rem",
+                paddingBottom: "1rem",
+                borderBottom: "1px solid var(--cms-border)",
+              }}
+            >
+              <div>
+                <h2 style={{ margin: 0, fontSize: "1.3rem" }}>Executive Administrator Directory</h2>
+                <p className="cms-hint" style={{ margin: "4px 0 0" }}>
+                  Authorized administrators with full management privileges for events, applications, content, and partner networks.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="cms-btn cms-btn-primary"
+                onClick={() => {
+                  generateAdminPassword();
+                  setAdminModalOpen(true);
+                }}
+              >
+                + Invite New Administrator
+              </button>
+            </div>
+
+            {adminUsersLoading ? (
+              <div style={{ padding: "3rem", textAlign: "center", color: "var(--cms-text-muted)" }}>
+                Loading administrator directory…
+              </div>
+            ) : adminUsers.length === 0 ? (
+              <div style={{ padding: "3rem", textAlign: "center" }}>
+                <p>No administrator accounts found.</p>
+              </div>
+            ) : (
+              <div style={{ marginTop: "1.5rem", overflowX: "auto" }}>
+                <table className="cms-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ textAlign: "left", borderBottom: "2px solid var(--cms-border)" }}>
+                      <th style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)" }}>ADMINISTRATOR</th>
+                      <th style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)" }}>EMAIL ADDRESS</th>
+                      <th style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)" }}>ROLE</th>
+                      <th style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)" }}>PROVISIONED</th>
+                      <th style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)", textAlign: "right" }}>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminUsers.map((user) => {
+                      const isSelf = user.email === currentUser?.email;
+                      return (
+                        <tr key={user.id} style={{ borderBottom: "1px solid var(--cms-border)" }}>
+                          <td style={{ padding: "12px 14px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <div
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  background: isSelf ? "var(--cms-accent)" : "rgba(88, 172, 140, 0.2)",
+                                  color: isSelf ? "#fff" : "var(--cms-accent)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontWeight: 700,
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                {(user.name || user.email || "A").charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <strong style={{ fontSize: "0.92rem", display: "block" }}>
+                                  {user.name || "Administrator"} {isSelf && <span style={{ fontSize: "0.75rem", color: "var(--cms-accent)" }}>(You)</span>}
+                                </strong>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: "12px 14px", fontSize: "0.88rem" }}>
+                            <code>{user.email}</code>
+                          </td>
+                          <td style={{ padding: "12px 14px" }}>
+                            <span className="cms-pill published" style={{ textTransform: "uppercase", fontSize: "0.72rem" }}>
+                              {user.role || "Admin"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--cms-text-muted)" }}>
+                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                          </td>
+                          <td style={{ padding: "12px 14px", textAlign: "right" }}>
+                            {isSelf ? (
+                              <span style={{ fontSize: "0.78rem", color: "var(--cms-text-muted)", fontStyle: "italic" }}>
+                                Active Session
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="cms-btn cms-btn-danger"
+                                style={{ fontSize: "0.75rem", padding: "5px 10px" }}
+                                onClick={() => deleteAdminUser(user.id, user.email)}
+                              >
+                                Revoke Access
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ---------------- Website Partner Modal ---------------- */}
@@ -4474,6 +4730,105 @@ export default function EventsAdminPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- Admin Invite Modal ---------------- */}
+      {adminModalOpen && (
+        <div className="cms-email-modal-overlay" onClick={() => setAdminModalOpen(false)}>
+          <div className="cms-email-modal-card" style={{ maxWidth: "520px" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800 }}>
+                🛡️ Invite New Administrator
+              </h3>
+              <button className="cms-icon-btn" onClick={() => setAdminModalOpen(false)}>✕</button>
+            </div>
+
+            <p className="cms-hint" style={{ margin: "0 0 1.25rem 0", lineHeight: 1.5 }}>
+              Create an executive account for a colleague or partner. You can choose to dispatch login credentials directly to their email.
+            </p>
+
+            <form onSubmit={createAdminUser} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="cms-field">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Harmonie Essome"
+                  value={newAdminForm.name}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, name: e.target.value })}
+                />
+              </div>
+
+              <div className="cms-field">
+                <label>Administrator Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="colleague@afropeanbusiness.com"
+                  value={newAdminForm.email}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
+                />
+              </div>
+
+              <div className="cms-field">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label>Initial / Temporary Password *</label>
+                  <button
+                    type="button"
+                    onClick={generateAdminPassword}
+                    className="cms-btn cms-btn-secondary"
+                    style={{ fontSize: "0.72rem", padding: "2px 8px" }}
+                  >
+                    🎲 Generate Strong
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  minLength={8}
+                  value={newAdminForm.password}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </div>
+
+              <div className="cms-switch-row" style={{ marginTop: "0.5rem" }}>
+                <div className="cms-switch-info">
+                  <strong>Send Invitation Email</strong>
+                  <span className="cms-hint" style={{ display: "block" }}>
+                    Dispatches credentials and executive portal sign-in link via Resend / SMTP.
+                  </span>
+                </div>
+                <label className="cms-switch-control">
+                  <input
+                    type="checkbox"
+                    checked={newAdminForm.sendInvite}
+                    onChange={(e) => setNewAdminForm({ ...newAdminForm, sendInvite: e.target.checked })}
+                  />
+                  <span className="cms-slider" />
+                </label>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  className="cms-btn cms-btn-secondary"
+                  style={{ flex: 1 }}
+                  onClick={() => setAdminModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={adminUsersLoading}
+                  className="cms-btn cms-btn-primary"
+                  style={{ flex: 1 }}
+                >
+                  {adminUsersLoading ? "Provisioning…" : "Create & Authorize Admin"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

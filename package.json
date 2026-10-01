@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "images:manifest": "node scripts/generate-image-manifest.mjs",
-    "db:migrate": "node --env-file=.env.local scripts/migrate-new-db.mjs"
+    "db:migrate": "node --env-file=.env.local scripts/migrate-new-db.mjs",
+    "admin:password": "node --env-file=.env.local scripts/set-admin-password.mjs"
   },
   "dependencies": {
     "@neondatabase/neon-js": "0.7.0-beta",

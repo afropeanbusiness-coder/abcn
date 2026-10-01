@@ -1282,7 +1282,7 @@ export default function EventsAdminPage() {
               </button>
             </div>
 
-            <Link href="/events" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
+            <Link href="/events" prefetch={false} className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
               View Public Events ↗
             </Link>
           </div>
@@ -1359,7 +1359,7 @@ export default function EventsAdminPage() {
               <span>Control Center</span>
             </div>
           </div>
-          <Link href="/events" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
+          <Link href="/events" prefetch={false} className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
             View Public Events ↗
           </Link>
         </header>
@@ -1628,10 +1628,10 @@ export default function EventsAdminPage() {
 
           {/* Quick Actions */}
           <div className="cms-top-actions">
-            <Link href="/" target="_blank" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
+            <Link href="/" prefetch={false} target="_blank" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
               Public Home ↗
             </Link>
-            <Link href="/events" target="_blank" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
+            <Link href="/events" prefetch={false} target="_blank" className="cms-btn cms-btn-secondary" style={{ fontSize: "0.78rem" }}>
               Public Events ↗
             </Link>
             {mainTab === "events" && (

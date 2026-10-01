@@ -35,7 +35,7 @@ const securityHeaders = [
   {
     // The site uses none of these; deny them rather than inherit browser defaults.
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+    value: "camera=(), microphone=(), geolocation=()",
   },
 ];
 

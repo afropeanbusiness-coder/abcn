@@ -1,6 +1,6 @@
 "use client";
 
-import { adminFetch } from "@/lib/admin-fetch";
+import { adminFetch, setAdminToken } from "@/lib/admin-fetch";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { neon } from "@/lib/neon";
@@ -12,7 +12,6 @@ import {
   FIALI_FALLBACK,
   normaliseEvent,
 } from "@/lib/events";
-import "@/app/[locale]/admin/admin.css";
 import SlideshowManager from "@/components/SlideshowManager";
 import FormBuilder from "@/components/FormBuilder";
 import { parseForm, type ApplicationForm } from "@/lib/application-form";
@@ -283,7 +282,12 @@ export default function EventsAdminPage() {
       );
       const { data } = await Promise.race([sessionPromise, timeoutPromise]);
       const user = (data as any)?.user || (data as any)?.session?.user;
+      const token = (data as any)?.session?.token || (data as any)?.token;
+      if (token) {
+        setAdminToken(token);
+      }
       if (!user) {
+        setAdminToken(null);
         setMode("signed-out");
         return;
       }
@@ -296,6 +300,7 @@ export default function EventsAdminPage() {
         setMode("needs-admin");
       }
     } catch {
+      setAdminToken(null);
       setMode("signed-out");
     }
   }
@@ -320,12 +325,15 @@ export default function EventsAdminPage() {
     };
   }
 
-  // Events loader: reads the database through the internal API. The old
-  // PostgREST fallback is gone; it could show a stale or seeded copy that then
-  // got saved back over the real data.
+  // Events loader: reads the database through the internal API.
   async function loadEvents() {
     try {
       const res = await adminFetch("/api/admin/events", { cache: "no-store" });
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
@@ -351,6 +359,11 @@ export default function EventsAdminPage() {
     setApplicationsLoading(true);
     try {
       const res = await adminFetch("/api/admin/applications");
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
       if (res.ok) {
         const json = await res.json();
         setAllApplications((json.data || []) as ApplicationRow[]);
@@ -370,16 +383,14 @@ export default function EventsAdminPage() {
     setApplicationsLoading(true);
     try {
       const res = await adminFetch(`/api/admin/applications?eventId=${encodeURIComponent(eventId)}`);
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
       if (res.ok) {
         const json = await res.json();
         setApplications((json.data || []) as ApplicationRow[]);
-      } else {
-        const { data } = await neon
-          .from("event_applications")
-          .select("*")
-          .eq("event_id", eventId)
-          .order("submitted_at", { ascending: false });
-        setApplications((data || []) as ApplicationRow[]);
       }
     } catch (err: any) {
       showToast(err.message || "Failed to load event applications", "error");
@@ -403,6 +414,10 @@ export default function EventsAdminPage() {
         showToast(res.error.message || "Invalid email or password.", "error");
         return;
       }
+      const token = (res?.data as any)?.session?.token || (res?.data as any)?.token;
+      if (token) {
+        setAdminToken(token);
+      }
       showToast("Signed in successfully.");
       await refreshSession();
     } catch (err: any) {
@@ -421,6 +436,10 @@ export default function EventsAdminPage() {
       if (res?.error) {
         showToast(res.error.message || "Could not create account.", "error");
         return;
+      }
+      const token = (res?.data as any)?.session?.token || (res?.data as any)?.token;
+      if (token) {
+        setAdminToken(token);
       }
       showToast("Account created. Welcome to ABCN CMS.");
       await refreshSession();
@@ -446,7 +465,12 @@ export default function EventsAdminPage() {
   }
 
   async function signOut() {
-    await neon.auth.signOut();
+    setAdminToken(null);
+    try {
+      await neon.auth.signOut();
+    } catch {
+      // Ignore
+    }
     setMode("signed-out");
     setEvents([]);
     setForm(blankEvent());
@@ -740,6 +764,11 @@ export default function EventsAdminPage() {
     setSitePartnersLoading(true);
     try {
       const res = await adminFetch("/api/admin/partners", { cache: "no-store" });
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !Array.isArray(json.data)) {
         throw new Error(json.error || `HTTP ${res.status}`);
@@ -956,6 +985,11 @@ export default function EventsAdminPage() {
   async function loadFormTemplates() {
     try {
       const res = await adminFetch("/api/admin/form-templates", { cache: "no-store" });
+      if (res.status === 401) {
+        setAdminToken(null);
+        setMode("signed-out");
+        return;
+      }
       const json = await res.json().catch(() => ({}));
       if (res.ok && Array.isArray(json.data)) setFormTemplates(json.data);
     } catch {

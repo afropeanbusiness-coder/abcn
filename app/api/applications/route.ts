@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { sendEmail, buildApplicationConfirmationHtml } from "@/lib/email";
+import { getEmailSettings } from "@/lib/settings";
 import {
   allFields,
   buildDefaultForm,
@@ -141,40 +142,56 @@ export async function POST(req: NextRequest) {
       ]);
     }
 
-    // Dispatch branded confirmation email with response summary to applicant
+    // Dispatch confirmation emails according to active notification preferences
     try {
+      const emailSettings = await getEmailSettings();
       const applicantEmail = s("email").toLowerCase();
-      const confirmationHtml = buildApplicationConfirmationHtml({
-        applicantId: result[0].id,
-        eventTitle,
-        firstName: s("firstName"),
-        lastName: s("lastName"),
-        email: applicantEmail,
-        phone: s("phone"),
-        city: s("location") || body.city || "Frankfurt am Main",
-        country: body.country || "DE",
-        companyName: s("companyName"),
-        companyWebsite: s("companyUrl"),
-        roleTitle: s("jobTitle"),
-        businessModel: s("sector"),
-        ventureStage: s("stage"),
-        aiInterest: s("aiFocus"),
-        motivation: s("motivation"),
-        goals: s("grantInterest"),
-        customAnswers: Object.keys(custom).length ? custom : undefined,
-        submittedAt: result[0].submitted_at || new Date().toISOString(),
-      });
 
-      sendEmail({
-        to: applicantEmail,
-        subject: `Application Received: ${eventTitle} — ABCN`,
-        html: confirmationHtml,
-        bcc: process.env.ADMIN_NOTIFY_EMAIL || "afropeanbusiness@gmail.com",
-      }).catch((emailErr) => {
-        console.error("[Application Confirmation Email Failed]:", emailErr);
-      });
+      if (emailSettings.send_to_applicant || emailSettings.send_to_admin) {
+        const confirmationHtml = buildApplicationConfirmationHtml({
+          applicantId: result[0].id,
+          eventTitle,
+          firstName: s("firstName"),
+          lastName: s("lastName"),
+          email: applicantEmail,
+          phone: s("phone"),
+          city: s("location") || body.city || "Frankfurt am Main",
+          country: body.country || "DE",
+          companyName: s("companyName"),
+          companyWebsite: s("companyUrl"),
+          roleTitle: s("jobTitle"),
+          businessModel: s("sector"),
+          ventureStage: s("stage"),
+          aiInterest: s("aiFocus"),
+          motivation: s("motivation"),
+          goals: s("grantInterest"),
+          customAnswers: Object.keys(custom).length ? custom : undefined,
+          submittedAt: result[0].submitted_at || new Date().toISOString(),
+        });
+
+        if (emailSettings.send_to_applicant) {
+          // Send to applicant, with BCC to admin if admin alerts are enabled
+          sendEmail({
+            to: applicantEmail,
+            subject: `Application Received: ${eventTitle} — ABCN`,
+            html: confirmationHtml,
+            bcc: emailSettings.send_to_admin ? emailSettings.admin_email : undefined,
+          }).catch((emailErr) => {
+            console.error("[Application Confirmation Email Failed]:", emailErr);
+          });
+        } else if (emailSettings.send_to_admin) {
+          // Applicant emails are deactivated; send alert only to admin
+          sendEmail({
+            to: emailSettings.admin_email,
+            subject: `[Admin Alert] Application Received: ${eventTitle} — ABCN`,
+            html: confirmationHtml,
+          }).catch((emailErr) => {
+            console.error("[Admin Alert Email Failed]:", emailErr);
+          });
+        }
+      }
     } catch (emailBuildErr) {
-      console.error("[Application Confirmation Email Build Error]:", emailBuildErr);
+      console.error("[Application Email Dispatch Error]:", emailBuildErr);
     }
 
     return NextResponse.json(

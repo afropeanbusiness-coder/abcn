@@ -241,6 +241,15 @@ export default function EventsAdminPage() {
     sendInvite: true,
   });
 
+  // Email Dispatch Preferences State
+  const [emailSettings, setEmailSettings] = useState({
+    send_to_applicant: true,
+    send_to_admin: true,
+    admin_email: "afropeanbusiness@gmail.com",
+  });
+  const [emailSettingsLoading, setEmailSettingsLoading] = useState(false);
+  const [emailSettingsSaving, setEmailSettingsSaving] = useState(false);
+
   useEffect(() => {
     const saved = typeof window !== "undefined" ? (localStorage.getItem("abcn-admin-theme") as AdminTheme | null) : null;
     if (saved === "light" || saved === "dark") {
@@ -312,7 +321,14 @@ export default function EventsAdminPage() {
       const role = String(user.role || "");
       if (role.includes("admin")) {
         setMode("admin");
-        await Promise.all([loadEvents(), loadAllApplications(), loadSitePartners(), loadFormTemplates(), loadAdminUsers()]);
+        await Promise.all([
+          loadEvents(),
+          loadAllApplications(),
+          loadSitePartners(),
+          loadFormTemplates(),
+          loadAdminUsers(),
+          loadEmailSettings(),
+        ]);
       } else {
         setMode("needs-admin");
       }
@@ -920,6 +936,41 @@ export default function EventsAdminPage() {
       showToast(err.message || "Failed to delete administrator", "error");
     } finally {
       setAdminUsersLoading(false);
+    }
+  }
+
+  // Email Notification Controls
+  async function loadEmailSettings() {
+    setEmailSettingsLoading(true);
+    try {
+      const res = await adminFetch("/api/admin/settings/email", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) setEmailSettings(json.data);
+      }
+    } catch {
+      // Keep defaults
+    } finally {
+      setEmailSettingsLoading(false);
+    }
+  }
+
+  async function saveEmailSettings() {
+    setEmailSettingsSaving(true);
+    try {
+      const res = await adminFetch("/api/admin/settings/email", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailSettings),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "Failed to update settings");
+      showToast("Email notification preferences saved successfully!");
+      if (json.data) setEmailSettings(json.data);
+    } catch (err: any) {
+      showToast(err.message || "Failed to save email settings", "error");
+    } finally {
+      setEmailSettingsSaving(false);
     }
   }
 
@@ -4466,6 +4517,144 @@ export default function EventsAdminPage() {
             ========================================================================= */}
         {mainTab === "admins" && (
           <div className="cms-panel" style={{ padding: "1.5rem" }}>
+            {/* ---------------- Email Dispatch & Notification Controls ---------------- */}
+            <div
+              style={{
+                marginBottom: "2rem",
+                padding: "1.5rem",
+                background: "var(--cms-surface)",
+                border: "1px solid var(--cms-border)",
+                borderRadius: "var(--cms-radius-md)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                  marginBottom: "1.25rem",
+                  paddingBottom: "1rem",
+                  borderBottom: "1px solid var(--cms-border)",
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: "0 0 4px 0", fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span>✉️</span> Application Email Dispatch Controls
+                  </h3>
+                  <p className="cms-hint" style={{ margin: 0 }}>
+                    Activate or deactivate automated emails triggered when an applicant submits an event form.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={saveEmailSettings}
+                  disabled={emailSettingsSaving || emailSettingsLoading}
+                  className="cms-btn cms-btn-primary"
+                  style={{ fontSize: "0.82rem", padding: "6px 16px" }}
+                >
+                  {emailSettingsSaving ? "Saving..." : "Save Email Preferences"}
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
+                {/* 1. Applicant Email Toggle */}
+                <div
+                  style={{
+                    padding: "1.25rem",
+                    border: "1px solid var(--cms-border)",
+                    borderRadius: "var(--cms-radius-sm)",
+                    background: "rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <div className="cms-switch-row" style={{ marginTop: 0 }}>
+                    <div className="cms-switch-info">
+                      <strong style={{ fontSize: "0.95rem" }}>Send Emails to Applicants</strong>
+                      <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
+                        Dispatches branded confirmation email to the applicant with a summary of their responses.
+                      </span>
+                    </div>
+                    <label className="cms-switch-control">
+                      <input
+                        type="checkbox"
+                        checked={emailSettings.send_to_applicant}
+                        onChange={(e) =>
+                          setEmailSettings((prev) => ({ ...prev, send_to_applicant: e.target.checked }))
+                        }
+                      />
+                      <span className="cms-slider" />
+                    </label>
+                  </div>
+                  <div style={{ marginTop: "12px" }}>
+                    <span className={`cms-pill ${emailSettings.send_to_applicant ? "published" : "draft"}`}>
+                      {emailSettings.send_to_applicant ? "✓ Active (Sending Enabled)" : "✕ Deactivated (Muted)"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Admin Alert Toggle */}
+                <div
+                  style={{
+                    padding: "1.25rem",
+                    border: "1px solid var(--cms-border)",
+                    borderRadius: "var(--cms-radius-sm)",
+                    background: "rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <div className="cms-switch-row" style={{ marginTop: 0 }}>
+                    <div className="cms-switch-info">
+                      <strong style={{ fontSize: "0.95rem" }}>Send Notifications to Admin</strong>
+                      <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
+                        Dispatches an alert copy to the administrator when a new application is received.
+                      </span>
+                    </div>
+                    <label className="cms-switch-control">
+                      <input
+                        type="checkbox"
+                        checked={emailSettings.send_to_admin}
+                        onChange={(e) =>
+                          setEmailSettings((prev) => ({ ...prev, send_to_admin: e.target.checked }))
+                        }
+                      />
+                      <span className="cms-slider" />
+                    </label>
+                  </div>
+                  <div style={{ marginTop: "12px" }}>
+                    <span className={`cms-pill ${emailSettings.send_to_admin ? "published" : "draft"}`}>
+                      {emailSettings.send_to_admin ? "✓ Active (Alerts Enabled)" : "✕ Deactivated (Muted)"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Admin Recipient Address */}
+                <div
+                  style={{
+                    padding: "1.25rem",
+                    border: "1px solid var(--cms-border)",
+                    borderRadius: "var(--cms-radius-sm)",
+                    background: "rgba(0,0,0,0.08)",
+                    gridColumn: "1 / -1",
+                  }}
+                >
+                  <label style={{ display: "block", fontWeight: 700, fontSize: "0.85rem", marginBottom: "6px" }}>
+                    Admin Notification Recipient Address
+                  </label>
+                  <input
+                    type="email"
+                    value={emailSettings.admin_email}
+                    onChange={(e) =>
+                      setEmailSettings((prev) => ({ ...prev, admin_email: e.target.value }))
+                    }
+                    placeholder="afropeanbusiness@gmail.com"
+                    style={{ maxWidth: "420px" }}
+                  />
+                  <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
+                    The target inbox that receives notifications or BCC copies of incoming founder submissions.
+                  </span>
+                </div>
+              </div>
+            </div>
             <div
               style={{
                 display: "flex",

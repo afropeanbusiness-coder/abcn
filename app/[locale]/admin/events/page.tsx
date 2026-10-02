@@ -1773,7 +1773,7 @@ export default function EventsAdminPage() {
             </div>
             <div className="cms-sidebar-user-info">
               <strong>{currentUser?.name || currentUser?.email?.split('@')[0] || "Administrator"}</strong>
-              <small>{currentUser?.email || "admin@abcn.network"}</small>
+              <small>{currentUser?.email || "Signed in"}</small>
             </div>
             <button onClick={signOut} className="cms-sidebar-logout" title="Sign out">
               ⏻

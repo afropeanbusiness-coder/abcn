@@ -2,14 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { siteUrl } from "@/lib/legal";
 
 export default function NavExtras() {
-  const [shareUrl, setShareUrl] = useState("https://abcn.network");
+  /**
+   * Share the page the visitor is actually on.
+   *
+   * This used to start at a hardcoded URL and only adopt the real location if
+   * the origin contained "abcn.network". That domain does not resolve and the
+   * site is not served from it, so the condition was never true: every
+   * WhatsApp, LinkedIn and X share posted a link to a dead host, regardless of
+   * which page it was sent from.
+   *
+   * siteUrl is the server-render fallback only, until the effect supplies the
+   * current URL on the client.
+   */
+  const [shareUrl, setShareUrl] = useState(siteUrl);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.origin.includes("abcn.network")) {
-      setShareUrl(window.location.href);
-    }
+    setShareUrl(window.location.href);
   }, []);
 
   const shareText = "ABCN - Afropean Business & Culture Network | Connecting Diaspora Innovation Across Africa & Europe";

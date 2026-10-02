@@ -31,7 +31,12 @@ export const getLegalInfo = (locale: string = "en"): LegalInfo => {
     postalCity: "Frankfurt am Main",
     country: de ? "Deutschland" : "Germany",
     representative: "Harmonie Essome",
-    email: "contact@abcn.network",
+    // Was contact@abcn.network - a domain that does not resolve and has no MX
+    // record, so every privacy request and legal notice sent to it bounced.
+    // An Impressum must carry a contact that actually receives mail (§5 DDG),
+    // so this stays a visible placeholder until the real address is supplied
+    // rather than publishing a second dead one.
+    email: de ? "[E-Mail-Adresse ergänzen]" : "[Contact email to be confirmed]",
     phone: de ? "[Telefonnummer]" : "[Telephone number]",
     registerCourt: de ? "[Registergericht, falls eingetragen]" : "[Register court, if registered]",
     registerNumber: de ? "[Registernummer, falls eingetragen]" : "[Registration number, if registered]",
@@ -73,5 +78,21 @@ export const privacyInfrastructure = {
   database: "Neon",
 };
 
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://abcn.network";
+/**
+ * The live domain, used when NEXT_PUBLIC_SITE_URL is not set.
+ *
+ * This fallback is not cosmetic. Canonical tags, hreflang annotations, og:url,
+ * the sitemap, robots.txt and all JSON-LD are built from siteUrl, so whatever
+ * is here is what the site tells search engines about itself.
+ *
+ * It previously read "https://abcn.network", a domain that does not resolve.
+ * With NEXT_PUBLIC_SITE_URL unset in production, every page on the live site
+ * was publishing a canonical URL on a dead host - which tells Google the real
+ * pages are duplicates of something that does not exist.
+ *
+ * Keep this equal to the host the middleware redirects to; middleware.ts
+ * imports it for exactly that reason.
+ */
+export const DEFAULT_SITE_URL = "https://www.afropeanbusiness.com";
+
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL;

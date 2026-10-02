@@ -2,29 +2,26 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import { toGermanPath } from "./lib/locale-redirect";
+import { DEFAULT_SITE_URL, siteUrl } from "./lib/legal";
 
 const intlMiddleware = createMiddleware(routing);
 
 /**
  * The one host every other domain redirects to.
  *
- * Derived from NEXT_PUBLIC_SITE_URL, which is also what the sitemap, canonical
- * tags and hreflang annotations are built from. These used to be set
- * separately - the middleware redirected to www.afropeanbusiness.com while
- * siteUrl fell back to abcn.network - so the site could tell search engines its
- * canonical home was one domain while bouncing every visitor to another.
- * Keep them as one value.
+ * Taken from siteUrl, which is also what the sitemap, canonical tags, hreflang
+ * and JSON-LD are built from. These used to be independent - the middleware
+ * redirected to www.afropeanbusiness.com while siteUrl fell back to the
+ * non-existent abcn.network - so the site told search engines its canonical
+ * home was a dead domain while bouncing every visitor somewhere else. One
+ * value now feeds both.
  */
 const CANONICAL_HOST = (() => {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) {
-    try {
-      return new URL(configured).host.toLowerCase();
-    } catch {
-      // fall through to the default below
-    }
+  try {
+    return new URL(siteUrl).host.toLowerCase();
+  } catch {
+    return new URL(DEFAULT_SITE_URL).host.toLowerCase();
   }
-  return "www.afropeanbusiness.com";
 })();
 
 export default function middleware(request: NextRequest) {

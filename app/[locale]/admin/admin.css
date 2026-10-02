@@ -2548,3 +2548,19 @@
   border-top: 1px solid var(--cms-border);
   animation: cmsFadeIn 0.3s ease;
 }
+
+/* Applicant rows open the detail panel on click.
+   The status dropdown and action buttons stop propagation, so changing a
+   status or deleting does not also open the panel behind the click. */
+.cms-table tr.cms-row-clickable {
+  cursor: pointer;
+}
+
+.cms-table tr.cms-row-clickable:focus-visible {
+  outline: 2px solid var(--cms-accent, #5f8fc0);
+  outline-offset: -2px;
+}
+
+.cms-table tr.cms-row-clickable:focus-visible td {
+  background: var(--cms-surface-hover);
+}

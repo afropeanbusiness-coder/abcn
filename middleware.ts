@@ -1,10 +1,31 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
+import { toGermanPath } from "./lib/locale-redirect";
 
 const intlMiddleware = createMiddleware(routing);
 
-const CANONICAL_HOST = "www.afropeanbusiness.com";
+/**
+ * The one host every other domain redirects to.
+ *
+ * Derived from NEXT_PUBLIC_SITE_URL, which is also what the sitemap, canonical
+ * tags and hreflang annotations are built from. These used to be set
+ * separately - the middleware redirected to www.afropeanbusiness.com while
+ * siteUrl fell back to abcn.network - so the site could tell search engines its
+ * canonical home was one domain while bouncing every visitor to another.
+ * Keep them as one value.
+ */
+const CANONICAL_HOST = (() => {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) {
+    try {
+      return new URL(configured).host.toLowerCase();
+    } catch {
+      // fall through to the default below
+    }
+  }
+  return "www.afropeanbusiness.com";
+})();
 
 export default function middleware(request: NextRequest) {
   const host = (
@@ -26,23 +47,13 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 1. Any request coming from a .de domain (e.g. afropeanbusiness.de, afropeanbusinessnetwork.de)
+  // 1. Any request arriving on a .de domain (afropeanbusiness.de, abcn.de, ...)
+  //    lands on the German site in a single hop. toGermanPath resolves the
+  //    localized slug - /events becomes /de/veranstaltungen directly, rather
+  //    than /de/events and a second redirect from next-intl.
   if (host.endsWith(".de")) {
-    if (pathname === "/" || pathname === "") {
-      return NextResponse.redirect(
-        new URL(`/de${search}`, `https://${CANONICAL_HOST}`),
-        301
-      );
-    }
-    if (!pathname.startsWith("/de")) {
-      return NextResponse.redirect(
-        new URL(`/de${pathname}${search}`, `https://${CANONICAL_HOST}`),
-        301
-      );
-    }
-    // Already has /de prefix but came via the .de domain host
     return NextResponse.redirect(
-      new URL(`${pathname}${search}`, `https://${CANONICAL_HOST}`),
+      new URL(`${toGermanPath(pathname)}${search}`, `https://${CANONICAL_HOST}`),
       301
     );
   }

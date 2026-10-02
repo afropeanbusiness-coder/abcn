@@ -3324,7 +3324,19 @@ export default function EventsAdminPage() {
                         </thead>
                         <tbody>
                           {applications.map((app) => (
-                            <tr key={app.id}>
+                            <tr
+                              key={app.id}
+                              className="cms-row-clickable"
+                              tabIndex={0}
+                              aria-label={`Open application from ${app.first_name} ${app.last_name}`}
+                              onClick={() => setSelectedApplicant(app)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setSelectedApplicant(app);
+                                }
+                              }}
+                            >
                               <td>
                                 <span className="cms-applicant-name">
                                   {app.first_name} {app.last_name}
@@ -3334,7 +3346,7 @@ export default function EventsAdminPage() {
                               <td>{app.company_name || "Venture TBA"}</td>
                               <td>{app.email}</td>
                               <td>{new Date(app.submitted_at).toLocaleDateString()}</td>
-                              <td>
+                              <td onClick={(e) => e.stopPropagation()}>
                                 <select
                                   className="cms-status-select"
                                   value={app.status}
@@ -3347,7 +3359,7 @@ export default function EventsAdminPage() {
                                   <option value="declined">Declined</option>
                                 </select>
                               </td>
-                              <td>
+                              <td onClick={(e) => e.stopPropagation()}>
                                 <div style={{ display: "flex", gap: "6px" }}>
                                   <button
                                     onClick={() => setSelectedApplicant(app)}
@@ -3541,7 +3553,19 @@ export default function EventsAdminPage() {
                 </thead>
                 <tbody>
                   {filteredPipeline.map((app) => (
-                    <tr key={app.id}>
+                    <tr
+                      key={app.id}
+                      className="cms-row-clickable"
+                      tabIndex={0}
+                      aria-label={`Open application from ${app.first_name} ${app.last_name}`}
+                      onClick={() => setSelectedApplicant(app)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedApplicant(app);
+                        }
+                      }}
+                    >
                       <td>
                         <span className="cms-applicant-name">
                           {app.first_name} {app.last_name}
@@ -3559,7 +3583,7 @@ export default function EventsAdminPage() {
                         {app.city || "City TBA"}, {app.country || "Country TBA"}
                       </td>
                       <td>{new Date(app.submitted_at).toLocaleDateString()}</td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <select
                           className="cms-status-select"
                           value={app.status}
@@ -3572,7 +3596,7 @@ export default function EventsAdminPage() {
                           <option value="declined">Declined</option>
                         </select>
                       </td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button
                             onClick={() => setSelectedApplicant(app)}

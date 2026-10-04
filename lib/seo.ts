@@ -15,6 +15,17 @@ export type Href =
   | AppPathname
   | { pathname: AppPathname; params: Record<string, string> };
 
+/**
+ * The picture shown when a link is shared (WhatsApp, LinkedIn, Facebook, X).
+ * Replace public/assets/abcn/share-fiali.jpg (1200x630) to change it everywhere.
+ */
+export const SHARE_IMAGE = {
+  url: "/assets/abcn/share-fiali.jpg",
+  width: 1200,
+  height: 630,
+  alt: "ABCN - Female Innovation & Afropean Leadership Initiative",
+};
+
 /** Locale-prefixed, localized path for a route, e.g. /de/veranstaltungen/x. */
 export function pathFor(href: Href, locale: Locale): string {
   return getPathname({ href, locale } as never);

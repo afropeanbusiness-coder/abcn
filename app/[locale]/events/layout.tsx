@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
-import { alternatesFor, urlFor } from "@/lib/seo";
+import { alternatesFor, SHARE_IMAGE, urlFor } from "@/lib/seo";
 import "./events.css";
 
 /**
@@ -29,6 +29,7 @@ export async function generateMetadata({
       siteName: "Afropean Business & Culture Network",
       locale: locale === "de" ? "de_DE" : "en_GB",
       alternateLocale: locale === "de" ? ["en_GB"] : ["de_DE"],
+      images: [SHARE_IMAGE],
     },
   };
 }

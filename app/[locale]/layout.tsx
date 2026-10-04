@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
 import { routing, type Locale } from "@/i18n/routing";
 import { siteUrl } from "@/lib/legal";
-import { alternatesFor } from "@/lib/seo";
+import { alternatesFor, SHARE_IMAGE } from "@/lib/seo";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/structured-data";
 import JsonLd from "@/components/JsonLd";
 import "../globals.css";
@@ -66,11 +66,13 @@ export async function generateMetadata({
       siteName: "Afropean Business & Culture Network",
       locale: locale === "de" ? "de_DE" : "en_GB",
       alternateLocale: locale === "de" ? ["en_GB"] : ["de_DE"],
+      images: [SHARE_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: t("title"),
       description: t("ogDescription"),
+      images: [SHARE_IMAGE.url],
     },
     alternates: alternatesFor("/", locale as Locale),
     verification: googleVerification ? { google: googleVerification } : undefined,

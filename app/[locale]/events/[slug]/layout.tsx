@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { siteUrl } from "@/lib/legal";
-import { alternatesFor, urlFor } from "@/lib/seo";
+import { alternatesFor, SHARE_IMAGE, urlFor } from "@/lib/seo";
 import type { Locale } from "@/i18n/routing";
 import { getEventBySlug } from "@/lib/events-server";
 import { FIALI_SLUG } from "@/lib/events";
@@ -43,7 +43,9 @@ export async function generateMetadata({
 
   const title = `${event.title} | ABCN`;
   const description = event.short_description || event.description;
-  const image = event.hero_image_url || event.card_image_url || undefined;
+  // FIALI is shared with its own graphic; other events use their hero photo.
+  const isFiali = slug === FIALI_SLUG;
+  const image = isFiali ? SHARE_IMAGE.url : event.hero_image_url || event.card_image_url || undefined;
   const href = { pathname: "/events/[slug]" as const, params: { slug } };
 
   return {
@@ -59,7 +61,7 @@ export async function generateMetadata({
       siteName: "Afropean Business & Culture Network",
       locale: de ? "de_DE" : "en_GB",
       alternateLocale: de ? ["en_GB"] : ["de_DE"],
-      images: image ? [{ url: image, alt: event.title }] : undefined,
+      images: isFiali ? [SHARE_IMAGE] : image ? [{ url: image, alt: event.title }] : undefined,
     },
     twitter: {
       card: "summary_large_image",

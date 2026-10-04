@@ -376,7 +376,18 @@
     "galleryViewPhoto": "View photo",
     "galleryClose": "Close",
     "galleryPrev": "Previous photo",
-    "galleryNext": "Next photo"
+    "galleryNext": "Next photo",
+    "closedTitle": "Applications are closed",
+    "closedBody": "This programme is no longer accepting applications.",
+    "closedSince": "Applications closed on {date}.",
+    "fullTitle": "Applications are full",
+    "fullBody": "This programme has reached its maximum number of applications.",
+    "upcomingTitle": "Applications open soon",
+    "upcomingBody": "Applications open on {date}.",
+    "closedFollow": "Follow ABCN on Instagram to hear about the next programme.",
+    "closedCta": "Follow @afropeanbusinessnetwork",
+    "applicationsClosedNav": "Applications closed",
+    "closesOn": "Applications close on {date}."
   },
   "events": {
     "majorSupportersKicker": "Major Financial Supporters",

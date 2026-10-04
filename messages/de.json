@@ -376,7 +376,18 @@
     "galleryViewPhoto": "Foto ansehen",
     "galleryClose": "Schließen",
     "galleryPrev": "Vorheriges Foto",
-    "galleryNext": "Nächstes Foto"
+    "galleryNext": "Nächstes Foto",
+    "closedTitle": "Die Bewerbung ist geschlossen",
+    "closedBody": "Für dieses Programm werden keine Bewerbungen mehr angenommen.",
+    "closedSince": "Die Bewerbungsfrist endete am {date}.",
+    "fullTitle": "Alle Plätze sind vergeben",
+    "fullBody": "Für dieses Programm wurde die maximale Anzahl an Bewerbungen erreicht.",
+    "upcomingTitle": "Die Bewerbung startet bald",
+    "upcomingBody": "Die Bewerbung startet am {date}.",
+    "closedFollow": "Folgen Sie ABCN auf Instagram, um vom nächsten Programm zu erfahren.",
+    "closedCta": "@afropeanbusinessnetwork folgen",
+    "applicationsClosedNav": "Bewerbung geschlossen",
+    "closesOn": "Die Bewerbung ist bis {date} möglich."
   },
   "events": {
     "majorSupportersKicker": "Hauptförderer",

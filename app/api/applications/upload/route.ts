@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { applicationState } from "@/lib/application-status";
 import { FILE_EXTENSIONS, MAX_FILE_BYTES, parseForm } from "@/lib/application-form";
 
 export const dynamic = "force-dynamic";
@@ -48,10 +49,15 @@ export async function POST(req: NextRequest) {
     if (!(file instanceof File) || !eventId || !fieldId) return fail("Missing file, event or question.");
 
     // The question must exist on this event's form and be a file question.
-    const ev = await query<{ application_form: unknown }>(
-      "SELECT application_form FROM events WHERE id = $1 LIMIT 1",
+    const ev = await query<any>(
+      `SELECT application_form, application_open, application_opens_at, application_closes_at, application_max,
+              (SELECT COUNT(*) FROM event_applications a WHERE a.event_id = events.id) AS n
+       FROM events WHERE id = $1 LIMIT 1`,
       [eventId]
     );
+    if (ev[0] && applicationState(ev[0], { count: Number(ev[0].n) }) !== "open") {
+      return fail("Applications are not open for this programme.", 403);
+    }
     const schema = parseForm(ev[0]?.application_form);
     const field = schema?.steps.flatMap((s) => s.fields).find((f) => f.id === fieldId);
     if (!field || field.type !== "file") return fail("This question does not accept files.", 403);

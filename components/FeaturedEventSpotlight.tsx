@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import LogoMarquee from "@/components/LogoMarquee";
+import { applicationState } from "@/lib/application-status";
 import styles from "./FeaturedEventSpotlight.module.css";
 
 function renderEventTitle(title: string) {
@@ -110,7 +111,7 @@ export default function FeaturedEventSpotlight() {
         <div className={styles.copy}>
           <p>{event.short_description}</p>
           <div className={styles.actions}>
-            {event.application_open ? (
+            {event.application_open && applicationState(event) === "open" ? (
               <Link className={styles.primary} href={{ pathname: "/events/[slug]", params: { slug: event.slug }, hash: "apply" }}>
                 {event.application_cta || t("applyNow")} →
               </Link>

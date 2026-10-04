@@ -73,6 +73,12 @@ export type EventRecord = {
   /** Custom application form; null/absent = the default form. See lib/application-form.ts */
   application_form?: unknown;
   application_open?: boolean;
+  /** ISO instants; shown/edited in Frankfurt time. See lib/application-status.ts */
+  application_opens_at?: string | null;
+  application_closes_at?: string | null;
+  application_max?: number | null;
+  application_closed_message?: string | null;
+  application_closed_message_de?: string | null;
   application_deadline?: string | null;
   application_cta?: string | null;
   focus_areas: EventContentCard[];
@@ -487,6 +493,11 @@ export function normaliseEvent(
     })(),
     application_form: row.application_form ?? null,
     application_open: Boolean(row.application_open),
+    application_opens_at: row.application_opens_at ?? null,
+    application_closes_at: row.application_closes_at ?? null,
+    application_max: row.application_max ?? null,
+    application_closed_message: row.application_closed_message ?? null,
+    application_closed_message_de: row.application_closed_message_de ?? null,
     application_deadline: pick(r, "application_deadline", locale, base.application_deadline, seeded),
     application_cta: pick(r, "application_cta", locale, base.application_cta || (locale === "de" ? "Jetzt bewerben" : "Apply now"), seeded),
     focus_areas: pick(r, "focus_areas", locale, base.focus_areas || [], seeded),

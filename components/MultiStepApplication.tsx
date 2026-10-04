@@ -182,6 +182,7 @@ export default function MultiStepApplication({
           eventSlug,
           ...core,
           country: "DE",
+          locale,
           answers,
           referralSource: "",
           consent,

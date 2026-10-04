@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { applicationState } from "@/lib/application-status";
 import { sendEmail, buildApplicationConfirmationHtml } from "@/lib/email";
 import { getEmailSettings } from "@/lib/settings";
 import {
@@ -36,19 +37,28 @@ export async function POST(req: NextRequest) {
     let eventTitle = "ABCN Flagship Programme";
     let storedForm: unknown = null;
     {
+      const cols = `id, title, application_form, application_open, application_opens_at, application_closes_at,
+                    application_max, (SELECT COUNT(*) FROM event_applications a WHERE a.event_id = events.id) AS n`;
       const rows = resolvedEventId
-        ? await query<{ id: string; title: string; application_form: unknown }>(
-            "SELECT id, title, application_form FROM events WHERE id = $1 LIMIT 1",
-            [resolvedEventId]
-          )
-        : await query<{ id: string; title: string; application_form: unknown }>(
-            "SELECT id, title, application_form FROM events WHERE slug = $1 LIMIT 1",
-            [eventSlug || "fiali-frankfurt-2026"]
-          );
+        ? await query<any>(`SELECT ${cols} FROM events WHERE id = $1 LIMIT 1`, [resolvedEventId])
+        : await query<any>(`SELECT ${cols} FROM events WHERE slug = $1 LIMIT 1`, [eventSlug || "fiali-frankfurt-2026"]);
       if (rows.length > 0) {
         resolvedEventId = rows[0].id;
         eventTitle = rows[0].title || eventTitle;
         storedForm = rows[0].application_form;
+
+        // Enforced here, not just in the page: a hidden form can still be posted to.
+        const state = applicationState(rows[0], { count: Number(rows[0].n) });
+        if (state !== "open") {
+          const de = body.locale === "de";
+          const msg: Record<string, [string, string]> = {
+            off: ["Applications are not open for this programme.", "Für dieses Programm werden derzeit keine Bewerbungen angenommen."],
+            closed: ["Applications for this programme have closed.", "Die Bewerbungsfrist für dieses Programm ist abgelaufen."],
+            upcoming: ["Applications for this programme have not opened yet.", "Die Bewerbung für dieses Programm ist noch nicht geöffnet."],
+            full: ["This programme has reached its maximum number of applications.", "Für dieses Programm wurde die maximale Anzahl an Bewerbungen erreicht."],
+          };
+          return NextResponse.json({ error: msg[state][de ? 1 : 0], code: `applications_${state}` }, { status: 403 });
+        }
       }
     }
     const form: ApplicationForm = parseForm(storedForm) ?? buildDefaultForm(false);

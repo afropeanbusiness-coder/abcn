@@ -13,6 +13,8 @@ import { neon } from "@/lib/neon";
 import { EventRecord, FIALI_FALLBACK, fallbackEvent, normaliseEvent } from "@/lib/events";
 import Img from "@/components/Img";
 import EventGallery from "@/components/EventGallery";
+import ApplicationClosedNotice from "@/components/ApplicationClosedNotice";
+import { applicationState, formatBerlin, type ApplicationState } from "@/lib/application-status";
 
 /**
  * FAQ grouping. The numbers are the faq<N>Q / faq<N>A message keys; grouping
@@ -79,6 +81,14 @@ export default function EventDetailPage() {
       ? fallbackEvent(locale)
       : { ...fallbackEvent(locale), slug, title: "ABCN Event" }
   );
+  // Authoritative open/closed answer from the server (includes the applicant cap).
+  const [appStatus, setAppStatus] = useState<{
+    state: ApplicationState;
+    opensAt?: string | null;
+    closesAt?: string | null;
+    message?: string | null;
+    message_de?: string | null;
+  } | null>(null);
   const [activeStage, setActiveStage] = useState<number | "all">("all");
   const [checkedCriteria, setCheckedCriteria] = useState<Record<number, boolean>>({});
 
@@ -89,6 +99,12 @@ export default function EventDetailPage() {
         ? fallbackEvent(locale)
         : { ...fallbackEvent(locale), slug, title: "ABCN Event" }
     );
+    fetch(`/api/application-status?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (live && j?.success) setAppStatus(j);
+      })
+      .catch(() => {});
     // Fetch directly from /api/events for instant Postgres reads
     fetch(`/api/events?slug=${encodeURIComponent(slug)}&limit=1`)
       .then((res) => res.json())
@@ -122,6 +138,11 @@ export default function EventDetailPage() {
 
   const isFiali = event.slug === FIALI_FALLBACK.slug;
   const hasApplications = Boolean(event.application_open);
+  // Until the server answers, fall back to the dates on the event record.
+  const appState: ApplicationState = appStatus?.state ?? applicationState(event);
+  const canApply = hasApplications && appState === "open";
+  const windowClosed = hasApplications && (appState === "closed" || appState === "full" || appState === "upcoming");
+  const closesAt = appStatus?.closesAt ?? event.application_closes_at ?? null;
 
   const toggleCriteria = (index: number) => {
     setCheckedCriteria((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -152,9 +173,14 @@ export default function EventDetailPage() {
           {isFiali && <a href="#gallery">{te("navGallery")}</a>}
           <a href="#eligibility">{te("navWhoFor")}</a>
           {isFiali && <a href="#faq">{te("navFaq")}</a>}
-          {hasApplications && (
+          {canApply && (
             <a className="nav-apply" href="#apply">
               {event.application_cta || "Apply"}
+            </a>
+          )}
+          {windowClosed && (
+            <a className="nav-apply" href="#apply" style={{ opacity: 0.75 }}>
+              {te("applicationsClosedNav")}
             </a>
           )}
         </nav>
@@ -178,9 +204,13 @@ export default function EventDetailPage() {
           </h1>
           <p className="benchmark-lead">{event.short_description}</p>
           <div className="benchmark-actions">
-            {hasApplications ? (
+            {canApply ? (
               <a className="benchmark-primary" href="#apply">
                 {event.application_cta || "Apply now"} →
+              </a>
+            ) : windowClosed ? (
+              <a className="benchmark-primary" href="#apply" style={{ opacity: 0.85 }}>
+                {appState === "upcoming" ? te("upcomingTitle") : appState === "full" ? te("fullTitle") : te("closedTitle")}
               </a>
             ) : event.registration_url ? (
               <a className="benchmark-primary" href={event.registration_url} target="_blank" rel="noreferrer">
@@ -577,7 +607,7 @@ export default function EventDetailPage() {
       )}
 
       {/* Cohort Scarcity Band */}
-      {hasApplications && (
+      {canApply && (
         <section className="scarcity-band">
           <div>
             <span>{te("scarcityKicker")}</span>
@@ -635,7 +665,7 @@ export default function EventDetailPage() {
             ))}
           </div>
 
-          {hasApplications && (
+          {canApply && (
             <div className="fiali-faq-cta">
               <p>{te("faqCtaText")}</p>
               <a href="#apply">{event.application_cta || "Apply now"} &rarr;</a>
@@ -644,8 +674,8 @@ export default function EventDetailPage() {
         </section>
       )}
 
-      {/* Application Form Section */}
-      {hasApplications && (
+      {/* Application Form Section (or the closed / full / not-yet-open notice) */}
+      {(canApply || windowClosed) && (
         <section id="apply" className="application-section">
           <div className="application-intro">
             <span className="benchmark-kicker">{te("applyKicker")}</span>
@@ -686,14 +716,31 @@ export default function EventDetailPage() {
             )}
           </div>
           <div style={{ flex: 1, minWidth: "320px" }}>
-            <MultiStepApplication
-              eventId={event.id}
-              eventSlug={event.slug}
-              eventTitle={event.title}
-              grants={event.grants}
-              applicationDeadline={event.application_deadline}
-              form={event.application_form}
-            />
+            {canApply ? (
+              <>
+                {closesAt && (
+                  <p style={{ margin: "0 0 12px", fontSize: "0.85rem", fontWeight: 700, color: "#a45e00" }}>
+                    {te("closesOn", { date: formatBerlin(closesAt, locale) })}
+                  </p>
+                )}
+                <MultiStepApplication
+                  eventId={event.id}
+                  eventSlug={event.slug}
+                  eventTitle={event.title}
+                  grants={event.grants}
+                  applicationDeadline={event.application_deadline}
+                  form={event.application_form}
+                />
+              </>
+            ) : (
+              <ApplicationClosedNotice
+                state={appState as "closed" | "full" | "upcoming"}
+                opensAt={appStatus?.opensAt ?? event.application_opens_at}
+                closesAt={closesAt}
+                message={appStatus?.message ?? event.application_closed_message}
+                message_de={appStatus?.message_de ?? event.application_closed_message_de}
+              />
+            )}
           </div>
         </section>
       )}

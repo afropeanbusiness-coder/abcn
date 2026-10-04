@@ -15,6 +15,7 @@ import {
 import SlideshowManager from "@/components/SlideshowManager";
 import FormBuilder from "@/components/FormBuilder";
 import { parseForm, type ApplicationForm } from "@/lib/application-form";
+import { applicationState, berlinLocalToISO, describeState, isoToBerlinLocal } from "@/lib/application-status";
 
 type Mode = "checking" | "signed-out" | "needs-admin" | "admin";
 type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media" | "admins";
@@ -1952,8 +1953,15 @@ export default function EventsAdminPage() {
                         {event.featured && <span className="cms-pill featured">★ Featured</span>}
                         {event.show_on_home && <span className="cms-pill home">Homepage</span>}
                         {event.application_open && (
-                          <span className="cms-pill" style={{ background: "rgba(59,130,246,0.15)", color: "#60A5FA" }}>
-                            Applications Open
+                          <span
+                            className="cms-pill"
+                            style={
+                              applicationState(event) === "open"
+                                ? { background: "rgba(59,130,246,0.15)", color: "#60A5FA" }
+                                : { background: "rgba(229,72,77,0.15)", color: "#f0777b" }
+                            }
+                          >
+                            {describeState(event)}
                           </span>
                         )}
                         <span style={{ fontSize: "0.7rem", color: "var(--cms-text-muted)" }}>
@@ -2224,6 +2232,63 @@ export default function EventsAdminPage() {
                         value={form.application_deadline || ""}
                         onChange={(e) => update("application_deadline", e.target.value)}
                         placeholder="Applications reviewed on a rolling basis · limited places"
+                      />
+                    </div>
+
+                    <div className="cms-field" style={{ gridColumn: "1 / -1" }}>
+                      <label>Application window (Frankfurt time)</label>
+                      <p className="cms-hint" style={{ margin: "0 0 8px" }}>
+                        Applications close automatically at the time below and the form is replaced by an
+                        “Applications closed” notice. The switch above still works as an early close. All times are
+                        Frankfurt time (Europe/Berlin), whatever your own time zone.
+                      </p>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.75rem" }}>
+                        <div>
+                          <span className="cms-hint">Opens at (optional)</span>
+                          <input
+                            type="datetime-local"
+                            value={isoToBerlinLocal(form.application_opens_at)}
+                            onChange={(e) => update("application_opens_at", e.target.value ? berlinLocalToISO(e.target.value) : null)}
+                          />
+                        </div>
+                        <div>
+                          <span className="cms-hint">Closes at</span>
+                          <input
+                            type="datetime-local"
+                            value={isoToBerlinLocal(form.application_closes_at)}
+                            onChange={(e) => update("application_closes_at", e.target.value ? berlinLocalToISO(e.target.value) : null)}
+                          />
+                        </div>
+                        <div>
+                          <span className="cms-hint">Maximum applications (optional)</span>
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="e.g. 40"
+                            value={form.application_max ?? ""}
+                            onChange={(e) => update("application_max", e.target.value ? Math.max(1, Number(e.target.value)) : null)}
+                          />
+                        </div>
+                      </div>
+                      <p className="cms-hint" style={{ margin: "8px 0 0" }}>Status now: <strong>{describeState(form)}</strong></p>
+                    </div>
+
+                    <div className="cms-field">
+                      <label>Message on the “closed” notice (EN, optional)</label>
+                      <input
+                        type="text"
+                        value={form.application_closed_message || ""}
+                        onChange={(e) => update("application_closed_message", e.target.value)}
+                        placeholder="e.g. The next cohort opens in spring 2027."
+                      />
+                    </div>
+                    <div className="cms-field">
+                      <label>Message on the “closed” notice (DE, optional)</label>
+                      <input
+                        type="text"
+                        value={form.application_closed_message_de || ""}
+                        onChange={(e) => update("application_closed_message_de", e.target.value)}
+                        placeholder="z. B. Die nächste Kohorte startet im Frühjahr 2027."
                       />
                     </div>
                   </div>

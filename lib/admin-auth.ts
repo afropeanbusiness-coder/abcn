@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import { query } from "@/lib/db";
 
 /**
@@ -56,4 +56,19 @@ export async function requireAdmin(req: NextRequest): Promise<NextResponse | nul
     return deny(403, "Could not verify admin access.");
   }
   return null;
+}
+
+/**
+ * Who is making an admin request, for the audit log. Call only after
+ * requireAdmin() has accepted the request; the token is then known to be valid.
+ */
+export function adminActor(req: NextRequest): string {
+  const header = req.headers.get("authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  try {
+    const p: any = decodeJwt(token);
+    return String(p.email || p.sub || "admin");
+  } catch {
+    return "admin";
+  }
 }

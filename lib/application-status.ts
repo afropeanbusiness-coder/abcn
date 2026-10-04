@@ -14,6 +14,8 @@ export type ApplicationState = "off" | "upcoming" | "closed" | "full" | "open";
 
 export interface ApplicationWindow {
   application_open?: boolean | null;
+  /** 'open' | 'closed' | null. A manual decision that beats the schedule and cap. */
+  application_override?: string | null;
   application_opens_at?: string | Date | null;
   application_closes_at?: string | Date | null;
   application_max?: number | null;
@@ -29,6 +31,9 @@ export function applicationState(
   ev: ApplicationWindow,
   opts: { now?: number; count?: number } = {}
 ): ApplicationState {
+  // A manual decision by an admin beats everything else.
+  if (ev.application_override === "open") return "open";
+  if (ev.application_override === "closed") return "closed";
   if (!ev.application_open) return "off";
   const now = opts.now ?? Date.now();
   const opens = toMs(ev.application_opens_at);
@@ -101,6 +106,8 @@ export function formatBerlin(iso: string | Date | null | undefined, locale: stri
 /** Short status text for the CMS list, e.g. "Open · closes in 3 days". */
 export function describeState(ev: ApplicationWindow, now = Date.now()): string {
   const s = applicationState(ev, { now });
+  if (ev.application_override === "open") return "Open · manual override";
+  if (ev.application_override === "closed") return "Closed · manual override";
   if (s === "off") return "Applications off";
   if (s === "closed") return "Closed";
   if (s === "upcoming") return `Opens ${formatBerlin(ev.application_opens_at, "en").replace(/ \(.*\)$/, "")}`;

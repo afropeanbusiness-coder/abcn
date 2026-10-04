@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { applicationState } from "@/lib/application-status";
+import { checkAccessLink } from "@/lib/access-links";
 import { FILE_EXTENSIONS, MAX_FILE_BYTES, parseForm } from "@/lib/application-form";
 
 export const dynamic = "force-dynamic";
@@ -50,13 +51,19 @@ export async function POST(req: NextRequest) {
 
     // The question must exist on this event's form and be a file question.
     const ev = await query<any>(
-      `SELECT application_form, application_open, application_opens_at, application_closes_at, application_max,
+      `SELECT application_form, application_open, application_override, application_opens_at, application_closes_at, application_max,
               (SELECT COUNT(*) FROM event_applications a WHERE a.event_id = events.id) AS n
        FROM events WHERE id = $1 LIMIT 1`,
       [eventId]
     );
-    if (ev[0] && applicationState(ev[0], { count: Number(ev[0].n) }) !== "open") {
-      return fail("Applications are not open for this programme.", 403);
+    if (ev[0]) {
+      const state = applicationState(ev[0], { count: Number(ev[0].n) });
+      let allowed = state === "open";
+      const token = String(form.get("accessToken") || "");
+      if (!allowed && state !== "off" && ev[0].application_override !== "closed" && token) {
+        allowed = (await checkAccessLink(eventId, token)).ok;
+      }
+      if (!allowed) return fail("Applications are not open for this programme.", 403);
     }
     const schema = parseForm(ev[0]?.application_form);
     const field = schema?.steps.flatMap((s) => s.fields).find((f) => f.id === fieldId);

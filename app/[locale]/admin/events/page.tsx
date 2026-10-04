@@ -14,6 +14,7 @@ import {
 } from "@/lib/events";
 import SlideshowManager from "@/components/SlideshowManager";
 import FormBuilder from "@/components/FormBuilder";
+import ApplicationWindowPanel from "@/components/ApplicationWindowPanel";
 import { parseForm, type ApplicationForm } from "@/lib/application-form";
 import { applicationState, berlinLocalToISO, describeState, isoToBerlinLocal } from "@/lib/application-status";
 
@@ -2272,6 +2273,33 @@ export default function EventsAdminPage() {
                       </div>
                       <p className="cms-hint" style={{ margin: "8px 0 0" }}>Status now: <strong>{describeState(form)}</strong></p>
                     </div>
+
+                    {selectedId ? (
+                      <ApplicationWindowPanel
+                        eventId={selectedId}
+                        slug={form.slug}
+                        notify={showToast}
+                        onWindowChanged={(w) => {
+                          // Keep the open form in step with the database so a later Save cannot undo an extension.
+                          setForm((f) => ({
+                            ...f,
+                            application_closes_at: w.application_closes_at ?? null,
+                            application_override: w.application_override ?? null,
+                          }));
+                          setEvents((prev) =>
+                            prev.map((e) =>
+                              e.id === selectedId
+                                ? { ...e, application_closes_at: w.application_closes_at ?? null, application_override: w.application_override ?? null }
+                                : e
+                            )
+                          );
+                        }}
+                      />
+                    ) : (
+                      <p className="cms-hint" style={{ gridColumn: "1 / -1" }}>
+                        Extensions, manual override and private access links become available once the event is saved.
+                      </p>
+                    )}
 
                     <div className="cms-field">
                       <label>Message on the “closed” notice (EN, optional)</label>

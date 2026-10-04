@@ -29,6 +29,8 @@ type Props = {
   applicationDeadline?: string | null;
   /** The event's custom form from the CMS; null/undefined = the default form. */
   form?: unknown;
+  /** Private access link token (?access=...), sent so a closed window still accepts this person. */
+  accessToken?: string;
 };
 
 // Existing translated messages for the standard fields' errors.
@@ -48,6 +50,7 @@ export default function MultiStepApplication({
   eventTitle,
   grants,
   form: customForm,
+  accessToken,
 }: Props) {
   const locale = useLocale();
   const t = useTranslations("application");
@@ -136,6 +139,7 @@ export default function MultiStepApplication({
       fd.append("file", file);
       fd.append("fieldId", field.id);
       fd.append("eventId", eventId || "");
+      if (accessToken) fd.append("accessToken", accessToken);
       const res = await fetch("/api/applications/upload", { method: "POST", body: fd });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.id) throw new Error(json.error || t("errSubmit"));
@@ -183,6 +187,7 @@ export default function MultiStepApplication({
           ...core,
           country: "DE",
           locale,
+          accessToken: accessToken || undefined,
           answers,
           referralSource: "",
           consent,

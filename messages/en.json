@@ -387,7 +387,8 @@
     "closedFollow": "Follow ABCN on Instagram to hear about the next programme.",
     "closedCta": "Follow @afropeanbusinessnetwork",
     "applicationsClosedNav": "Applications closed",
-    "closesOn": "Applications close on {date}."
+    "closesOn": "Applications close on {date}.",
+    "privateLinkNote": "You are using a private access link. Applications are open for you."
   },
   "events": {
     "majorSupportersKicker": "Major Financial Supporters",

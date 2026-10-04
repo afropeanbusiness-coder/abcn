@@ -77,6 +77,8 @@ export type EventRecord = {
   application_opens_at?: string | null;
   application_closes_at?: string | null;
   application_max?: number | null;
+  /** Manual decision by an admin: "open", "closed" or null (follow the schedule). */
+  application_override?: string | null;
   application_closed_message?: string | null;
   application_closed_message_de?: string | null;
   application_deadline?: string | null;
@@ -496,6 +498,7 @@ export function normaliseEvent(
     application_opens_at: row.application_opens_at ?? null,
     application_closes_at: row.application_closes_at ?? null,
     application_max: row.application_max ?? null,
+    application_override: row.application_override ?? null,
     application_closed_message: row.application_closed_message ?? null,
     application_closed_message_de: row.application_closed_message_de ?? null,
     application_deadline: pick(r, "application_deadline", locale, base.application_deadline, seeded),

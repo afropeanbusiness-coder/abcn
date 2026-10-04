@@ -387,7 +387,8 @@
     "closedFollow": "Folgen Sie ABCN auf Instagram, um vom nächsten Programm zu erfahren.",
     "closedCta": "@afropeanbusinessnetwork folgen",
     "applicationsClosedNav": "Bewerbung geschlossen",
-    "closesOn": "Die Bewerbung ist bis {date} möglich."
+    "closesOn": "Die Bewerbung ist bis {date} möglich.",
+    "privateLinkNote": "Sie nutzen einen privaten Zugangslink. Die Bewerbung ist für Sie geöffnet."
   },
   "events": {
     "majorSupportersKicker": "Hauptförderer",

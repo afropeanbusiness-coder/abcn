@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { applicationState } from "@/lib/application-status";
+import { checkAccessLink, claimAccessLink, releaseAccessLink } from "@/lib/access-links";
 import { sendEmail, buildApplicationConfirmationHtml } from "@/lib/email";
 import { getEmailSettings } from "@/lib/settings";
 import {
@@ -24,6 +25,7 @@ export const dynamic = "force-dynamic";
 const fail = (error: string, status = 400) => NextResponse.json({ error }, { status });
 
 export async function POST(req: NextRequest) {
+  let claimedLinkId: string | undefined;
   try {
     const body = await req.json();
     const { eventId, eventSlug, consent } = body;
@@ -36,8 +38,9 @@ export async function POST(req: NextRequest) {
     let resolvedEventId: string | null = eventId || null;
     let eventTitle = "ABCN Flagship Programme";
     let storedForm: unknown = null;
+    let accessLinkId: string | undefined;
     {
-      const cols = `id, title, application_form, application_open, application_opens_at, application_closes_at,
+      const cols = `id, title, application_form, application_open, application_override, application_opens_at, application_closes_at,
                     application_max, (SELECT COUNT(*) FROM event_applications a WHERE a.event_id = events.id) AS n`;
       const rows = resolvedEventId
         ? await query<any>(`SELECT ${cols} FROM events WHERE id = $1 LIMIT 1`, [resolvedEventId])
@@ -49,7 +52,15 @@ export async function POST(req: NextRequest) {
 
         // Enforced here, not just in the page: a hidden form can still be posted to.
         const state = applicationState(rows[0], { count: Number(rows[0].n) });
-        if (state !== "open") {
+        let allowed = state === "open";
+        if (!allowed && state !== "off" && rows[0].application_override !== "closed" && body.accessToken) {
+          const link = await checkAccessLink(rows[0].id, String(body.accessToken));
+          if (link.ok) {
+            allowed = true;
+            accessLinkId = link.id;
+          }
+        }
+        if (!allowed) {
           const de = body.locale === "de";
           const msg: Record<string, [string, string]> = {
             off: ["Applications are not open for this programme.", "Für dieses Programm werden derzeit keine Bewerbungen angenommen."],
@@ -133,6 +144,15 @@ export async function POST(req: NextRequest) {
       Object.keys(custom).length ? JSON.stringify(custom) : null,
     ];
 
+    // A private link is used up here, before saving, so two people cannot both
+    // use its last place. It is given back below if saving fails.
+    if (accessLinkId) {
+      if (!(await claimAccessLink(accessLinkId))) {
+        return NextResponse.json({ error: "This access link has expired or has been used up.", code: "link_exhausted" }, { status: 403 });
+      }
+      claimedLinkId = accessLinkId;
+    }
+
     const result = await query<{ id: string; submitted_at: string }>(
       `INSERT INTO event_applications (
         event_id, first_name, last_name, role_title, email, phone, city, country,
@@ -209,6 +229,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err: any) {
+    if (claimedLinkId) await releaseAccessLink(claimedLinkId).catch(() => {});
     console.error("[POST /api/applications error]", err);
     return NextResponse.json({ error: err.message || "Failed to submit application." }, { status: 500 });
   }

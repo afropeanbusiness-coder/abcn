@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin, adminActor } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -172,6 +172,13 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Keep an audit trail of closing-date changes, whichever screen made them.
+    let oldCloses: unknown = undefined;
+    if ("application_closes_at" in sanitized) {
+      const before = await query<any>("SELECT application_closes_at FROM events WHERE id = $1", [id]);
+      oldCloses = before[0]?.application_closes_at ?? null;
+    }
+
     const setClauses = cols.map((col, idx) => `${col} = $${idx + 1}`).join(", ");
     const values = [...cols.map((c) => sanitized[c]), id];
 
@@ -188,6 +195,16 @@ export async function PUT(req: NextRequest) {
         { data: null, error: "Event not found." },
         { status: 404 }
       );
+    }
+    if (oldCloses !== undefined) {
+      const was = oldCloses ? new Date(oldCloses as string).toISOString() : null;
+      const now = sanitized.application_closes_at ? new Date(sanitized.application_closes_at).toISOString() : null;
+      if (was !== now) {
+        await query(
+          "INSERT INTO application_window_log (event_id, action, detail, actor) VALUES ($1, 'set_window', $2, $3)",
+          [id, JSON.stringify({ from: was, to: now }), adminActor(req)]
+        );
+      }
     }
 
     return NextResponse.json({ data: rows[0], error: null });

@@ -27,7 +27,8 @@ export default function ApplicationClosedNotice({
   const copy = {
     closed: {
       title: t("closedTitle"),
-      body: closesAt ? t("closedSince", { date: formatBerlin(closesAt, locale) }) : t("closedBody"),
+      // Only name the date if it has passed; a manual close happens before the scheduled time.
+      body: closesAt && new Date(closesAt).getTime() <= Date.now() ? t("closedSince", { date: formatBerlin(closesAt, locale) }) : t("closedBody"),
     },
     full: { title: t("fullTitle"), body: t("fullBody") },
     upcoming: { title: t("upcomingTitle"), body: t("upcomingBody", { date: formatBerlin(opensAt, locale) }) },

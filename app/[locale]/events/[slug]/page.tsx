@@ -73,6 +73,12 @@ export default function EventDetailPage() {
   const locale = useLocale();
   const te = useTranslations("event");
   const params = useParams<{ slug: string }>();
+  // Private link: /events/<slug>?access=<token> lets a specific person apply after the window closes.
+  // Read after mount (not via useSearchParams) so the page can stay statically rendered.
+  const [accessToken, setAccessToken] = useState("");
+  useEffect(() => {
+    setAccessToken(new URLSearchParams(window.location.search).get("access") || "");
+  }, []);
   const slug = params?.slug || FIALI_FALLBACK.slug;
   // Locale-aware initial state: this is what server-rendered HTML contains,
   // so a hard-coded English fallback made /de render English before hydration.
@@ -84,6 +90,7 @@ export default function EventDetailPage() {
   // Authoritative open/closed answer from the server (includes the applicant cap).
   const [appStatus, setAppStatus] = useState<{
     state: ApplicationState;
+    viaLink?: boolean;
     opensAt?: string | null;
     closesAt?: string | null;
     message?: string | null;
@@ -99,7 +106,7 @@ export default function EventDetailPage() {
         ? fallbackEvent(locale)
         : { ...fallbackEvent(locale), slug, title: "ABCN Event" }
     );
-    fetch(`/api/application-status?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
+    fetch(`/api/application-status?slug=${encodeURIComponent(slug)}${accessToken ? `&access=${encodeURIComponent(accessToken)}` : ""}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((j) => {
         if (live && j?.success) setAppStatus(j);
@@ -134,7 +141,7 @@ export default function EventDetailPage() {
     return () => {
       live = false;
     };
-  }, [slug, locale]);
+  }, [slug, locale, accessToken]);
 
   const isFiali = event.slug === FIALI_FALLBACK.slug;
   const hasApplications = Boolean(event.application_open);
@@ -723,7 +730,13 @@ export default function EventDetailPage() {
                     {te("closesOn", { date: formatBerlin(closesAt, locale) })}
                   </p>
                 )}
+                {appStatus?.viaLink && (
+                  <p style={{ margin: "0 0 12px", fontSize: "0.82rem", fontWeight: 700, color: "#13253a" }}>
+                    🔑 {te("privateLinkNote")}
+                  </p>
+                )}
                 <MultiStepApplication
+                  accessToken={accessToken}
                   eventId={event.id}
                   eventSlug={event.slug}
                   eventTitle={event.title}

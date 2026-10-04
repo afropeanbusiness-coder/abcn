@@ -85,7 +85,7 @@
   "gallery": {
     "pill": "Ecosystem in Action",
     "title": "Real Moments. Real Momentum.",
-    "lead": "Step inside our alumni gatherings, fireside sessions, sales labs, rooftop meetups and Women's Day celebrations bringing Afropean community to life.",
+    "lead": "Step inside our alumni gatherings, fireside sessions, ecosystem roundtables, rooftop meetups and Women's Day celebrations bringing Afropean community to life.",
     "pause": "Pause slideshow",
     "play": "Play slideshow",
     "prev": "Previous slide",
@@ -517,5 +517,11 @@
     "partnersTagline": "Cross-Border Innovation",
     "footerCreed": "African roots · European horizons",
     "navHome": "Home"
+  },
+  "video": {
+    "pill": "Watch",
+    "title": "ABCN in action",
+    "lead": "See the energy of our gatherings, from first introductions to the conversations that turn into partnerships.",
+    "unsupported": "Your browser cannot play this video."
   }
 }

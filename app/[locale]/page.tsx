@@ -8,6 +8,7 @@ import NavExtras from "@/components/NavExtras";
 import SiteFooter from "@/components/SiteFooter";
 import Voices from "@/components/Voices";
 import SlideshowGallery from "@/components/SlideshowGallery";
+import HighlightVideo from "@/components/HighlightVideo";
 import { FIALI_SLUG } from "@/lib/events";
 import Img from "@/components/Img";
 
@@ -27,9 +28,9 @@ const HERO_STRIP_SIZES = "(max-width: 760px) 50vw, 380px";
 
 const images = {
   hero: "/assets/abcn/events/rooftop-community-gathering.jpg",
-  business: "/assets/abcn/events/style-networking-evening.jpg",
+  business: "/assets/abcn/events/afropean-team-outdoors.jpg",
   culture: "/assets/abcn/events/afropean-women-celebration.jpg",
-  join: "/assets/abcn/events/fireside-conversation-full.jpg",
+  join: "/assets/abcn/events/community-team-portrait.jpg",
 };
 
 function Arrow({ down = false }: { down?: boolean }) {
@@ -292,6 +293,9 @@ export default function Home() {
 
       {/* Strategic Live Impressions Slideshow Gallery */}
       <SlideshowGallery />
+
+      {/* Highlights video */}
+      <HighlightVideo />
 
       <section id="founder" className="section founder">
         <div className="founder-visual">

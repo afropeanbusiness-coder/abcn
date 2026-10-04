@@ -85,7 +85,7 @@
   "gallery": {
     "pill": "Unser Netzwerk in Aktion",
     "title": "Echte Momente. Echte Wirksamkeit.",
-    "lead": "Erleben Sie unsere Alumni-Treffen, Fireside-Sessions, Sales-Labs, Rooftop-Meetups und Frauentag-Feiern, die die afropäische Community lebendig machen.",
+    "lead": "Erleben Sie unsere Alumni-Treffen, Fireside-Sessions, Ökosystem-Roundtables, Rooftop-Meetups und Frauentag-Feiern, die die afropäische Community lebendig machen.",
     "pause": "Diashow anhalten",
     "play": "Diashow abspielen",
     "prev": "Vorheriges Bild",
@@ -517,5 +517,11 @@
     "partnersTagline": "Grenzüberschreitende Innovation",
     "footerCreed": "Afrikanische Wurzeln · Europäische Horizonte",
     "navHome": "Startseite"
+  },
+  "video": {
+    "pill": "Ansehen",
+    "title": "ABCN in Aktion",
+    "lead": "Erleben Sie die Energie unserer Treffen, von den ersten Begegnungen bis zu den Gesprächen, aus denen Partnerschaften werden.",
+    "unsupported": "Ihr Browser kann dieses Video nicht abspielen."
   }
 }

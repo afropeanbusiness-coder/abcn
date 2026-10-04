@@ -4504,7 +4504,6 @@ export default function EventsAdminPage() {
                   { name: "Alumni Welcome Stage", path: "/assets/abcn/events/alumni-welcome-stage.jpg", category: "Community" },
                   { name: "Female Founders Lineup", path: "/assets/abcn/events/female-founders-lineup.jpg", category: "Summit" },
                   { name: "Mentorship Conversation", path: "/assets/abcn/events/mentorship-conversation.jpg", category: "Mentorship" },
-                  { name: "Sales Elevate Lab", path: "/assets/abcn/events/sales-elevate-lab-certificates.jpg", category: "Workshops" },
                   { name: "Rooftop Meetup", path: "/assets/abcn/events/rooftop-terrace-group.jpg", category: "Community" },
                   { name: "Networking Evening", path: "/assets/abcn/events/networking-evening-group.jpg", category: "Networking" },
                   { name: "Women's Day", path: "/assets/abcn/events/international-womens-day.jpg", category: "Community" },

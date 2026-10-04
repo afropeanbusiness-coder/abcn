@@ -24,11 +24,9 @@ export interface GallerySlide {
 const FALLBACK_SLIDES = [
   { id: "alumni", image: "/assets/abcn/events/alumni-community-group.jpg" },
   { id: "fireside", image: "/assets/abcn/events/fireside-stage-keynote.jpg" },
-  { id: "salesLab", image: "/assets/abcn/events/sales-elevate-lab-certificates.jpg" },
   { id: "rooftop", image: "/assets/abcn/events/rooftop-terrace-group.jpg" },
   { id: "networking", image: "/assets/abcn/events/networking-evening-group.jpg" },
   { id: "peerCircle", image: "/assets/abcn/events/peer-circle-women.jpg" },
-  { id: "roundtable", image: "/assets/abcn/events/roundtable-discussion.jpg" },
   { id: "womensDay", image: "/assets/abcn/events/international-womens-day.jpg" },
 ];
 

@@ -27,9 +27,9 @@ const HERO_STRIP_SIZES = "(max-width: 760px) 50vw, 380px";
 
 const images = {
   hero: "/assets/abcn/events/rooftop-community-gathering.jpg",
-  business: "/assets/abcn/events/partner-day-welcome-back.jpg",
+  business: "/assets/abcn/events/style-networking-evening.jpg",
   culture: "/assets/abcn/events/afropean-women-celebration.jpg",
-  join: "/assets/abcn/events/cafe-community-table.jpg",
+  join: "/assets/abcn/events/fireside-conversation-full.jpg",
 };
 
 function Arrow({ down = false }: { down?: boolean }) {

@@ -36,7 +36,7 @@ export const DEFAULT_FIALI_PARTNERS: EventPartner[] = [
     website: "https://bwit-dach.org",
   },
   {
-    name: "Flourish Where You Are Planted",
+    name: "FLOW MOMS · Flourish Where You Are Planted",
     logo: "/assets/fiali/logos/flourish-where-planted.png",
   },
   {

@@ -70,7 +70,7 @@ Verified programme details used in the Events section:
 - Stage 1 covers business-model development, leadership and positioning, AI and digitalization, and go-to-market strategy, culminating in an individual 90-day growth plan.
 - Stage 2 covers founder pitches, business matchmaking, expert keynotes and AI / innovation insights.
 - A **€1,000 Startup Innovation Grand Prize** is awarded to 1 person (eligible early-stage founder).
-- Partner marks shown in the supplied deck include ABCN, DIVOC Rising, Black Women in Tech DACH, Kompass Frankfurt and Flourish & Prosper. (EquiNet appeared in the deck but has been removed from the website and event pages at the organiser's request.)
+- Partner marks shown in the supplied deck include ABCN, DIVOC Rising, Black Women in Tech DACH, and Kompass Frankfurt. (EquiNet appeared in the deck but has been removed from the website and event pages at the organiser's request.)
 
 ### Date / venue caution
 The deck consistently identifies the programme as **Frankfurt 2026** but does not provide a trustworthy confirmed event date or venue. A slide labelled “June 23, 2035” conflicts with the rest of the document and is treated as an unverified template artefact, not a public event date. The website therefore says **“Dates to be announced”** until the CMS is updated with confirmed logistics.

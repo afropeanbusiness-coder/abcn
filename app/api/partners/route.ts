@@ -26,7 +26,6 @@ export async function GET() {
       { id: "p3", name: "Frankfurt Forward", logo_url: "/assets/fiali/logos/frankfurt-forward.png", website_url: "https://frankfurt-forward.de" },
       { id: "p4", name: "DIWOC Rising", logo_url: "/assets/fiali/logos/divoc-rising.png", website_url: "https://diwoc-rising.com" },
       { id: "p5", name: "Black Women in Tech DACH", logo_url: "/assets/fiali/logos/black-women-in-tech-dach.png", website_url: "https://bwit-dach.org" },
-      { id: "p6", name: "Flourish & Prosper", logo_url: "/assets/fiali/logos/flourish-prosper.png", website_url: "https://flourishandprosper.org" },
       { id: "p7", name: "ABCN", logo_url: "/assets/fiali/logos/abcn.png", website_url: "https://afropeanbusiness.com" },
     ],
   });

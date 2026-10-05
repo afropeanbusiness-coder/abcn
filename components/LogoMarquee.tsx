@@ -36,11 +36,6 @@ export const DEFAULT_FIALI_PARTNERS: EventPartner[] = [
     website: "https://bwit-dach.org",
   },
   {
-    name: "Flourish & Prosper",
-    logo: "/assets/fiali/logos/flourish-prosper.png",
-    website: "https://flourishandprosper.org",
-  },
-  {
     name: "ABCN",
     logo: "/assets/fiali/logos/abcn.png",
     website: "https://afropeanbusiness.com",

@@ -1283,7 +1283,6 @@ export default function EventsAdminPage() {
       { name: "Kompass Frankfurt", logo: "/assets/fiali/logos/kompass-frankfurt.png", website: "https://kompassfrankfurt.de" },
       { name: "DIVOC Rising", logo: "/assets/fiali/logos/divoc-rising.png", website: "https://divocrising.com" },
       { name: "Black Women in Tech DACH", logo: "/assets/fiali/logos/black-women-in-tech-dach.png", website: "https://bwt-dach.org" },
-      { name: "Flourish & Prosper", logo: "/assets/fiali/logos/flourish-prosper.png", website: "https://flourishprosper.com" },
     ];
     update("partners", defaults);
     showToast("Loaded 6 verified partner ecosystem logos.");

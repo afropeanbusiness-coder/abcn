@@ -222,12 +222,6 @@ export const FIALI_FALLBACK: EventRecord = {
       tier: "ecosystem_partner",
     },
     {
-      name: "Flourish & Prosper",
-      logo: "/assets/fiali/logos/flourish-prosper.png",
-      website: "https://flourishandprosper.org",
-      tier: "ecosystem_partner",
-    },
-    {
       name: "ABCN (Afropean Business & Culture Network)",
       logo: "/assets/fiali/logos/abcn.png",
       website: "https://afropeanbusiness.com",

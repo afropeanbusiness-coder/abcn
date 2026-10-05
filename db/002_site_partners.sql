@@ -28,7 +28,6 @@ SELECT * FROM (
     ('Mountain Hub', '/assets/fiali/logos/divoc-rising.png', 'https://mountainhub.com', 'Ecosystem Partner', 9, true),
     ('Kompass Frankfurt', '/assets/fiali/logos/kompass-frankfurt.png', 'https://kompassfrankfurt.de', 'Institutional Partner', 8, true),
     ('DIVOC Rising', '/assets/fiali/logos/divoc-rising.png', 'https://divocrising.com', 'Community Partner', 7, true),
-    ('Black Women in Tech DACH', '/assets/fiali/logos/black-women-in-tech-dach.png', 'https://bwit-dach.org', 'Community Partner', 6, true),
-    ('Flourish & Prosper', '/assets/fiali/logos/flourish-prosper.png', 'https://flourishandprosper.org', 'Strategic Partner', 5, true)
+    ('Black Women in Tech DACH', '/assets/fiali/logos/black-women-in-tech-dach.png', 'https://bwit-dach.org', 'Community Partner', 6, true)
 ) AS v(name, logo_url, website_url, category, priority, active)
 WHERE NOT EXISTS (SELECT 1 FROM site_partners LIMIT 1);

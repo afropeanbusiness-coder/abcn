@@ -94,6 +94,13 @@
     "close": "Vorschau schließen",
     "slideCounter": "{current} von {total}",
     "slides": {
+      "video": {
+        "kicker": "Ansehen",
+        "location": "Frankfurt am Main",
+        "tag": "Highlight-Video",
+        "title": "ABCN in Aktion",
+        "desc": "Erleben Sie die Energie unserer Treffen, von den ersten Begegnungen bis zu den Gesprächen, aus denen Partnerschaften werden."
+      },
       "alumni": {
         "kicker": "Alumni-Event",
         "location": "Community-Treffen",

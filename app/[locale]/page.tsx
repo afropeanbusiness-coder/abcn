@@ -8,7 +8,6 @@ import NavExtras from "@/components/NavExtras";
 import SiteFooter from "@/components/SiteFooter";
 import Voices from "@/components/Voices";
 import SlideshowGallery from "@/components/SlideshowGallery";
-import HighlightVideo from "@/components/HighlightVideo";
 import { FIALI_SLUG } from "@/lib/events";
 import Img from "@/components/Img";
 
@@ -293,9 +292,6 @@ export default function Home() {
 
       {/* Strategic Live Impressions Slideshow Gallery */}
       <SlideshowGallery />
-
-      {/* Highlights video */}
-      <HighlightVideo />
 
       <section id="founder" className="section founder">
         <div className="founder-visual">

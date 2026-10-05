@@ -8,6 +8,7 @@ import styles from "./SlideshowGallery.module.css";
 export interface GallerySlide {
   id: string;
   image: string;
+  video?: string | null;
   kicker: string;
   location: string;
   tag: string;
@@ -21,7 +22,8 @@ export interface GallerySlide {
  * are used only when the database cannot be reached. An empty CMS list is a
  * real answer and shows no slideshow, so deleted slides never come back.
  */
-const FALLBACK_SLIDES = [
+const FALLBACK_SLIDES: Array<{ id: string; image: string; video?: string }> = [
+  { id: "video", image: "/assets/abcn/events/fireside-stage-keynote.jpg", video: "/assets/abcn/video/abcn-highlights.mp4" },
   { id: "alumni", image: "/assets/abcn/events/alumni-community-group.jpg" },
   { id: "fireside", image: "/assets/abcn/events/fireside-stage-keynote.jpg" },
   { id: "rooftop", image: "/assets/abcn/events/rooftop-terrace-group.jpg" },
@@ -57,6 +59,7 @@ export default function SlideshowGallery() {
           FALLBACK_SLIDES.map((f) => ({
             id: f.id,
             image: f.image,
+            video: f.video || null,
             kicker: t(`slides.${f.id}.kicker` as any),
             location: t(`slides.${f.id}.location` as any),
             tag: t(`slides.${f.id}.tag` as any),
@@ -74,9 +77,12 @@ export default function SlideshowGallery() {
   const SLIDES: GallerySlide[] = slides ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const mainVideoRef = useRef<HTMLVideoElement | null>(null);
+  const lightboxVideoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartXRef = useRef<number | null>(null);
@@ -86,6 +92,13 @@ export default function SlideshowGallery() {
   const currentSlide = SLIDES[currentIndex] ?? SLIDES[0];
 
   const goToSlide = useCallback((index: number) => {
+    if (mainVideoRef.current) {
+      mainVideoRef.current.pause();
+    }
+    if (lightboxVideoRef.current) {
+      lightboxVideoRef.current.pause();
+    }
+    setIsVideoPlaying(false);
     setCurrentIndex(totalSlides ? (index + totalSlides) % totalSlides : 0);
     setProgress(0);
   }, [totalSlides]);
@@ -98,9 +111,16 @@ export default function SlideshowGallery() {
     goToSlide(currentIndex - 1);
   }, [currentIndex, goToSlide]);
 
+  const closeLightbox = useCallback(() => {
+    if (lightboxVideoRef.current) {
+      lightboxVideoRef.current.pause();
+    }
+    setIsLightboxOpen(false);
+  }, []);
+
   // Autoplay and progress timer
   useEffect(() => {
-    if (!isPlaying || isLightboxOpen) {
+    if (!isPlaying || isLightboxOpen || isVideoPlaying) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       return;
@@ -123,7 +143,7 @@ export default function SlideshowGallery() {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-  }, [currentIndex, isPlaying, isLightboxOpen, handleNext]);
+  }, [currentIndex, isPlaying, isLightboxOpen, isVideoPlaying, handleNext]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -133,13 +153,13 @@ export default function SlideshowGallery() {
       } else if (e.key === "ArrowLeft") {
         handlePrev();
       } else if (e.key === "Escape" && isLightboxOpen) {
-        setIsLightboxOpen(false);
+        closeLightbox();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev, isLightboxOpen]);
+  }, [handleNext, handlePrev, isLightboxOpen, closeLightbox]);
 
   // Touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -189,14 +209,29 @@ export default function SlideshowGallery() {
           {/* Main Visual Stage */}
           <div
             className={styles.mainStage}
-            onClick={() => setIsLightboxOpen(true)}
+            onClick={() => {
+              if (currentSlide.video) {
+                if (!isVideoPlaying && mainVideoRef.current) {
+                  mainVideoRef.current.play().catch(() => {});
+                }
+              } else {
+                setIsLightboxOpen(true);
+              }
+            }}
             role="button"
             tabIndex={0}
-            aria-label={`${currentSlide.title} - ${t("enlarge")}`}
+            aria-label={`${currentSlide.title} - ${currentSlide.video ? t("play") : t("enlarge")}`}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                setIsLightboxOpen(true);
+                if (currentSlide.video) {
+                  if (mainVideoRef.current) {
+                    if (isVideoPlaying) mainVideoRef.current.pause();
+                    else mainVideoRef.current.play().catch(() => {});
+                  }
+                } else {
+                  setIsLightboxOpen(true);
+                }
               }
             }}
           >
@@ -239,23 +274,64 @@ export default function SlideshowGallery() {
               </div>
             </div>
 
-            {/* Slide Image */}
-            <div className={styles.slideImageWrapper} key={currentSlide.id}>
-              <Img
-                src={currentSlide.image}
-                alt={currentSlide.title}
-                className={styles.slideImage}
-                fill
-                priority={currentIndex === 0}
-                sizes="(max-width: 900px) 100vw, 1240px"
-              />
-            </div>
+            {/* Slide Visual (Video or Image) */}
+            {currentSlide.video ? (
+              <div className={styles.slideVideoWrapper} key={currentSlide.id}>
+                <video
+                  ref={mainVideoRef}
+                  src={currentSlide.video}
+                  poster={currentSlide.image}
+                  controls={isVideoPlaying}
+                  playsInline
+                  preload="metadata"
+                  className={styles.slideVideo}
+                  onPlay={() => setIsVideoPlaying(true)}
+                  onPause={() => setIsVideoPlaying(false)}
+                  onEnded={() => {
+                    setIsVideoPlaying(false);
+                    handleNext();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                />
+                {!isVideoPlaying && (
+                  <button
+                    type="button"
+                    className={styles.centerPlayBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (mainVideoRef.current) {
+                        mainVideoRef.current.play().catch(() => {});
+                      }
+                    }}
+                    aria-label={t("play")}
+                  >
+                    <span className={styles.playPulseRing} />
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className={styles.slideImageWrapper} key={currentSlide.id}>
+                <Img
+                  src={currentSlide.image}
+                  alt={currentSlide.title}
+                  className={styles.slideImage}
+                  fill
+                  priority={currentIndex === 0}
+                  sizes="(max-width: 900px) 100vw, 1240px"
+                />
+              </div>
+            )}
 
             {/* Bottom Atmospheric Vignette */}
-            <div className={styles.overlayBottom} />
+            <div className={`${styles.overlayBottom} ${isVideoPlaying ? styles.overlayBottomHidden : ""}`} />
 
             {/* Text Overlay */}
-            <div className={styles.slideContent}>
+            <div className={`${styles.slideContent} ${isVideoPlaying ? styles.slideContentHidden : ""}`}>
               <div className={styles.slideText}>
                 <span className={styles.tagPill}>{currentSlide.tag}</span>
                 <h3 className={styles.slideTitle}>{currentSlide.title}</h3>
@@ -267,7 +343,7 @@ export default function SlideshowGallery() {
             <div className={styles.progressBarTrack} aria-hidden="true">
               <div
                 className={styles.progressBarFill}
-                style={{ width: `${isPlaying ? progress : 100}%` }}
+                style={{ width: `${isPlaying && !isVideoPlaying ? progress : 100}%` }}
               />
             </div>
           </div>
@@ -289,10 +365,15 @@ export default function SlideshowGallery() {
               <button
                 type="button"
                 className={styles.playPauseBtn}
-                onClick={() => setIsPlaying((prev) => !prev)}
+                onClick={() => {
+                  if (isVideoPlaying && mainVideoRef.current) {
+                    mainVideoRef.current.pause();
+                  }
+                  setIsPlaying((prev) => !prev);
+                }}
                 aria-label={isPlaying ? t("pause") : t("play")}
               >
-                {isPlaying ? (
+                {isPlaying && !isVideoPlaying ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <rect x="6" y="4" width="4" height="16"></rect>
                     <rect x="14" y="4" width="4" height="16"></rect>
@@ -334,13 +415,20 @@ export default function SlideshowGallery() {
                     onClick={() => goToSlide(idx)}
                     title={slide.title}
                   >
-                    <Img
-                      src={slide.image}
-                      alt=""
-                      aria-hidden="true"
-                      className={styles.thumbMini}
-                      sizes="24px"
-                    />
+                    <div className={styles.thumbMiniWrapper}>
+                      <Img
+                        src={slide.image}
+                        alt=""
+                        aria-hidden="true"
+                        className={styles.thumbMini}
+                        sizes="24px"
+                      />
+                      {slide.video && (
+                        <span className={styles.thumbVideoBadge} aria-label="Video">
+                          ▶
+                        </span>
+                      )}
+                    </div>
                     <span>{slide.kicker}</span>
                   </button>
                 );
@@ -354,7 +442,7 @@ export default function SlideshowGallery() {
       {isLightboxOpen && (
         <div
           className={styles.lightboxBackdrop}
-          onClick={() => setIsLightboxOpen(false)}
+          onClick={closeLightbox}
           role="dialog"
           aria-modal="true"
           aria-label={currentSlide.title}
@@ -369,7 +457,7 @@ export default function SlideshowGallery() {
             <button
               type="button"
               className={styles.lightboxCloseBtn}
-              onClick={() => setIsLightboxOpen(false)}
+              onClick={closeLightbox}
               aria-label={t("close")}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -384,7 +472,11 @@ export default function SlideshowGallery() {
             <button
               type="button"
               className={`${styles.lightboxNavBtn} ${styles.lightboxPrev}`}
-              onClick={handlePrev}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (lightboxVideoRef.current) lightboxVideoRef.current.pause();
+                handlePrev();
+              }}
               aria-label={t("prev")}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -392,20 +484,38 @@ export default function SlideshowGallery() {
               </svg>
             </button>
 
-            <div className={styles.lightboxImageFrame}>
-              <Img
-                src={currentSlide.image}
-                alt={currentSlide.title}
-                className={styles.lightboxImg}
-                sizes="(max-width: 1400px) 95vw, 1300px"
-                priority
-              />
-            </div>
+            {currentSlide.video ? (
+              <div className={styles.lightboxVideoFrame}>
+                <video
+                  ref={lightboxVideoRef}
+                  src={currentSlide.video}
+                  poster={currentSlide.image}
+                  controls
+                  autoPlay
+                  playsInline
+                  className={styles.lightboxVideo}
+                />
+              </div>
+            ) : (
+              <div className={styles.lightboxImageFrame}>
+                <Img
+                  src={currentSlide.image}
+                  alt={currentSlide.title}
+                  className={styles.lightboxImg}
+                  sizes="(max-width: 1400px) 95vw, 1300px"
+                  priority
+                />
+              </div>
+            )}
 
             <button
               type="button"
               className={`${styles.lightboxNavBtn} ${styles.lightboxNext}`}
-              onClick={handleNext}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (lightboxVideoRef.current) lightboxVideoRef.current.pause();
+                handleNext();
+              }}
               aria-label={t("next")}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

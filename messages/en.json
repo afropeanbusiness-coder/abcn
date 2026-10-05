@@ -94,6 +94,13 @@
     "close": "Close preview",
     "slideCounter": "{current} of {total}",
     "slides": {
+      "video": {
+        "kicker": "Watch",
+        "location": "Frankfurt am Main",
+        "tag": "Highlight Reel",
+        "title": "ABCN in Action",
+        "desc": "See the energy of our gatherings, from first introductions to the conversations that turn into partnerships."
+      },
       "alumni": {
         "kicker": "Alumni Event",
         "location": "Community Gathering",

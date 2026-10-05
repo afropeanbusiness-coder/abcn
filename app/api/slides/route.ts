@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const de = new URL(req.url).searchParams.get("locale") === "de";
   try {
     const rows = await query(
-      `SELECT id, image_url, width, height, kicker, location, tag, title, description,
+      `SELECT id, image_url, video_url, width, height, kicker, location, tag, title, description,
               kicker_de, location_de, tag_de, title_de, description_de,
               EXTRACT(EPOCH FROM updated_at)::bigint AS v
        FROM site_slides
@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       image: String(r.image_url).startsWith("data:")
         ? `/api/slides/image/${r.id}?v=${r.v}`
         : r.image_url,
+      video: r.video_url || null,
       width: r.width || null,
       height: r.height || null,
       kicker: pick(r.kicker, r.kicker_de),

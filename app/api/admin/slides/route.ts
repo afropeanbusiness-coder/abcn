@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 const TEXT_FIELDS = [
   "kicker", "location", "tag", "title", "description",
   "kicker_de", "location_de", "tag_de", "title_de", "description_de",
+  "video_url",
 ] as const;
 
 // Uploaded photos are stored inline as data URLs; keep them a sane size.
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
     const rows = await query(
       `SELECT id, CASE WHEN image_url LIKE 'data:%' THEN '/api/slides/image/' || id || '?v=' || EXTRACT(EPOCH FROM updated_at)::bigint
                        ELSE image_url END AS image_url,
+              video_url,
               width, height, kicker, location, tag, title, description,
               kicker_de, location_de, tag_de, title_de, description_de,
               sort_order, active

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type Slide = {
   id?: string;
   image_url: string;
+  video_url?: string | null;
   width?: number | null;
   height?: number | null;
   kicker: string;
@@ -31,6 +32,7 @@ type Slide = {
 
 const blank = (): Slide => ({
   image_url: "",
+  video_url: "",
   kicker: "",
   location: "",
   tag: "",
@@ -229,6 +231,11 @@ export default function SlideshowManager({
                   German: {s.title_de ? "✓" : "— (falls back to English)"}
                 </div>
               </div>
+              {s.video_url && (
+                <span className="cms-pill published" style={{ background: "rgba(224, 144, 0, 0.2)", color: "var(--cms-gold)", border: "1px solid rgba(224, 144, 0, 0.4)" }}>
+                  ▶ Video
+                </span>
+              )}
               <span className={`cms-pill ${s.active ? "published" : "draft"}`}>{s.active ? "Shown" : "Hidden"}</span>
               <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
                 <button className="cms-icon-btn" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
@@ -291,6 +298,19 @@ export default function SlideshowManager({
                     style={{ marginTop: "0.5rem" }}
                   />
                 )}
+              </div>
+
+              <div className="cms-field">
+                <label>Video URL / Asset Path (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. /assets/abcn/video/abcn-highlights.mp4"
+                  value={editing.video_url || ""}
+                  onChange={(e) => set("video_url", e.target.value)}
+                />
+                <span className="cms-hint">
+                  Turns this slide into a playable video. The photo above will be used as the video poster frame.
+                </span>
               </div>
 
               <div style={{ display: "flex", gap: "0.5rem" }}>

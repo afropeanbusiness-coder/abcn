@@ -248,6 +248,7 @@ export const FIALI_FALLBACK: EventRecord = {
     { url: "/assets/abcn/events/fireside-session-room.jpg", caption: "Fireside Session on Business Growth", category: "Fireside", chapter: "stage" },
     { url: "/assets/abcn/events/founder-conversation-spotlight.jpg", caption: "Founder Conversation Spotlight", category: "Interview", chapter: "rooms" },
     { url: "/assets/abcn/events/audience-listening-session.jpg", caption: "Full-House Community Session", category: "Community", chapter: "rooms" },
+    { url: "/assets/abcn/events/workshop-participants-listening.jpg", caption: "Participants Listening In", category: "Workshops", chapter: "rooms" },
     { url: "/assets/abcn/events/cafe-networking-space.jpg", caption: "Informal Ecosystem Matchmaking", category: "Networking", chapter: "rooms" },
     { url: "/assets/abcn/events/friends-welcome-moment.jpg", caption: "Founders Meeting Founders", category: "Networking", chapter: "together" },
     { url: "/assets/abcn/events/evening-social-gathering.jpg", caption: "Evening Network Gathering", category: "Community", chapter: "together" },

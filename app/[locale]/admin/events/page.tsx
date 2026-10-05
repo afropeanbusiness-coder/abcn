@@ -4600,6 +4600,8 @@ export default function EventsAdminPage() {
                   { name: "Rooftop Meetup", path: "/assets/abcn/events/rooftop-terrace-group.jpg", category: "Community" },
                   { name: "Networking Evening", path: "/assets/abcn/events/networking-evening-group.jpg", category: "Networking" },
                   { name: "Women's Day", path: "/assets/abcn/events/international-womens-day.jpg", category: "Community" },
+                  { name: "Participants Listening In", path: "/assets/abcn/events/workshop-participants-listening.jpg", category: "Workshops" },
+                  { name: "Colourful Community Group", path: "/assets/abcn/events/colourful-community-group.jpg", category: "Community" },
                   { name: "Harmonie Essome (Programme Lead)", path: "/assets/abcn/events/harmonie-programme-lead.jpg", category: "Leadership" },
                   { name: "ABCN Official Logo", path: "/assets/abcn/abcn-logo.png", category: "Brand" },
                 ].map((asset) => (

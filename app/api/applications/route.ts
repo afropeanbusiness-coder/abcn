@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { applicationState } from "@/lib/application-status";
 import { checkAccessLink, claimAccessLink, releaseAccessLink } from "@/lib/access-links";
-import { sendEmail, buildApplicationConfirmationHtml } from "@/lib/email";
+import { sendEmail, buildApplicationConfirmationHtml, buildAdminApplicationAlertHtml } from "@/lib/email";
 import { getEmailSettings } from "@/lib/settings";
 import {
   allFields,
@@ -174,62 +174,114 @@ export async function POST(req: NextRequest) {
       ]);
     }
 
-    // Dispatch confirmation emails according to active notification preferences
+    // Dispatch confirmation and admin alert emails with awaited delivery & status logging
     try {
       const emailSettings = await getEmailSettings();
       const applicantEmail = s("email").toLowerCase();
 
-      if (emailSettings.send_to_applicant || emailSettings.send_to_admin) {
-        const { html: confirmationHtml, subject: emailSubject } = buildApplicationConfirmationHtml(
-          {
-            applicantId: result[0].id,
-            eventTitle,
-            firstName: s("firstName"),
-            lastName: s("lastName"),
-            email: applicantEmail,
-            phone: s("phone"),
-            city: s("location") || body.city || "Frankfurt am Main",
-            country: body.country || "DE",
-            companyName: s("companyName"),
-            companyWebsite: s("companyUrl"),
-            roleTitle: s("jobTitle"),
-            businessModel: s("sector"),
-            ventureStage: s("stage"),
-            aiInterest: s("aiFocus"),
-            motivation: s("motivation"),
-            goals: s("grantInterest"),
-            customAnswers: Object.keys(custom).length ? custom : undefined,
-            submittedAt: result[0].submitted_at || new Date().toISOString(),
-          },
-          eventDetails?.email_template,
-          eventDetails
-        );
+      const applicantSummary = {
+        applicantId: result[0].id,
+        eventTitle,
+        firstName: s("firstName"),
+        lastName: s("lastName"),
+        email: applicantEmail,
+        phone: s("phone"),
+        city: s("location") || body.city || "Frankfurt am Main",
+        country: body.country || "DE",
+        companyName: s("companyName"),
+        companyWebsite: s("companyUrl"),
+        roleTitle: s("jobTitle"),
+        businessModel: s("sector"),
+        ventureStage: s("stage"),
+        aiInterest: s("aiFocus"),
+        motivation: s("motivation"),
+        goals: s("grantInterest"),
+        customAnswers: Object.keys(custom).length ? custom : undefined,
+        submittedAt: result[0].submitted_at || new Date().toISOString(),
+      };
 
-        const finalSubject = emailSubject || `Application Received: ${eventTitle} — ABCN`;
+      // 1. Applicant Confirmation Dispatch
+      if (emailSettings.send_to_applicant) {
+        try {
+          const { html: confirmationHtml, subject: emailSubject } = buildApplicationConfirmationHtml(
+            applicantSummary,
+            eventDetails?.email_template,
+            eventDetails
+          );
+          const finalSubject = emailSubject || `Application Received: ${eventTitle} — ABCN`;
 
-        if (emailSettings.send_to_applicant) {
-          // Send to applicant, with BCC to admin if admin alerts are enabled
-          sendEmail({
+          const sendRes = await sendEmail({
             to: applicantEmail,
             subject: finalSubject,
             html: confirmationHtml,
-            bcc: emailSettings.send_to_admin ? emailSettings.admin_email : undefined,
-          }).catch((emailErr) => {
-            console.error("[Application Confirmation Email Failed]:", emailErr);
           });
-        } else if (emailSettings.send_to_admin) {
-          // Applicant emails are deactivated; send alert only to admin
-          sendEmail({
-            to: emailSettings.admin_email,
-            subject: `[Admin Alert] ${finalSubject}`,
-            html: confirmationHtml,
-          }).catch((emailErr) => {
-            console.error("[Admin Alert Email Failed]:", emailErr);
-          });
+
+          const status = sendRes.success ? (sendRes.simulated ? "simulated" : "sent") : "failed";
+          await query(
+            `UPDATE event_applications 
+             SET email_status = $1, email_sent_at = NOW(), email_error = $2 
+             WHERE id = $3`,
+            [status, sendRes.error || null, result[0].id]
+          ).catch((e) => console.warn("[DB] Failed to update applicant email status:", e));
+        } catch (appSendErr: any) {
+          console.error("[Applicant Email Dispatch Failed]:", appSendErr);
+          await query(
+            `UPDATE event_applications 
+             SET email_status = 'failed', email_error = $1 
+             WHERE id = $2`,
+            [appSendErr?.message || "Send failed", result[0].id]
+          ).catch(() => {});
         }
+      } else {
+        await query(
+          `UPDATE event_applications SET email_status = 'disabled' WHERE id = $1`,
+          [result[0].id]
+        ).catch(() => {});
+      }
+
+      // 2. Admin Alert Dispatch (separate, dedicated delivery)
+      if (emailSettings.send_to_admin) {
+        try {
+          // Brief pause (150ms) to ensure Resend rate limit (2 req/s) is never exceeded
+          if (emailSettings.send_to_applicant) {
+            await new Promise((r) => setTimeout(r, 150));
+          }
+
+          const { html: adminHtml, subject: adminSubject } = buildAdminApplicationAlertHtml(
+            applicantSummary,
+            eventDetails
+          );
+
+          const adminSendRes = await sendEmail({
+            to: emailSettings.admin_email || "afropeanbusiness@gmail.com",
+            subject: adminSubject,
+            html: adminHtml,
+          });
+
+          const adminStatus = adminSendRes.success ? (adminSendRes.simulated ? "simulated" : "sent") : "failed";
+          await query(
+            `UPDATE event_applications 
+             SET admin_alert_status = $1, admin_alert_sent_at = NOW(), admin_alert_error = $2 
+             WHERE id = $3`,
+            [adminStatus, adminSendRes.error || null, result[0].id]
+          ).catch((e) => console.warn("[DB] Failed to update admin alert status:", e));
+        } catch (adminSendErr: any) {
+          console.error("[Admin Alert Dispatch Failed]:", adminSendErr);
+          await query(
+            `UPDATE event_applications 
+             SET admin_alert_status = 'failed', admin_alert_error = $1 
+             WHERE id = $2`,
+            [adminSendErr?.message || "Send failed", result[0].id]
+          ).catch(() => {});
+        }
+      } else {
+        await query(
+          `UPDATE event_applications SET admin_alert_status = 'disabled' WHERE id = $1`,
+          [result[0].id]
+        ).catch(() => {});
       }
     } catch (emailBuildErr) {
-      console.error("[Application Email Dispatch Error]:", emailBuildErr);
+      console.error("[Application Email Orchestration Error]:", emailBuildErr);
     }
 
     return NextResponse.json(

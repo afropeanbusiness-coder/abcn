@@ -68,6 +68,12 @@ type ApplicationRow = {
   admin_notes?: string | null;
   answers?: Record<string, { label: string; value: unknown }> | null;
   submitted_at: string;
+  email_status?: "sent" | "failed" | "simulated" | "disabled" | "pending" | null;
+  email_sent_at?: string | null;
+  email_error?: string | null;
+  admin_alert_status?: "sent" | "failed" | "simulated" | "disabled" | "pending" | null;
+  admin_alert_sent_at?: string | null;
+  admin_alert_error?: string | null;
 };
 
 const SECTIONS: { id: EditorTab; label: string; shortLabel: string; num: string }[] = [
@@ -687,6 +693,82 @@ export default function EventsAdminPage() {
       showToast("Application deleted.");
     } catch (err: any) {
       showToast(err.message || "Could not delete application", "error");
+    }
+  }
+
+  // Resend Confirmation Email Actions
+  const [resendingEmailId, setResendingEmailId] = useState<string | null>(null);
+  const [batchResending, setBatchResending] = useState(false);
+
+  async function resendApplicantEmail(id: string, notifyApplicant = true, notifyAdmin = false) {
+    setResendingEmailId(id);
+    try {
+      const res = await adminFetch("/api/admin/applications/resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId: id, sendToApplicant: notifyApplicant, sendToAdmin: notifyAdmin }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to dispatch email");
+      }
+      const item = json.results?.[0];
+      const isSimulated = item?.isSimulated;
+      showToast(
+        isSimulated
+          ? "Generated in simulation mode (check server logs)."
+          : `Confirmation email dispatched to ${item?.email || "applicant"}!`
+      );
+      await loadAllApplications();
+      if (selectedApplicant?.id === id) {
+        setSelectedApplicant((prev) =>
+          prev
+            ? {
+                ...prev,
+                email_status: (item?.applicantStatus || "sent") as any,
+                email_sent_at: new Date().toISOString(),
+                email_error: item?.applicantError || null,
+              }
+            : null
+        );
+      }
+    } catch (err: any) {
+      showToast(err.message || "Failed to resend confirmation email", "error");
+    } finally {
+      setResendingEmailId(null);
+    }
+  }
+
+  async function resendAllUnconfirmedEmails() {
+    const unconfirmed = allApplications.filter(
+      (a) => !a.email_status || a.email_status === "pending" || a.email_status === "failed"
+    );
+    if (!unconfirmed.length) {
+      showToast("All applicants currently have confirmed email dispatches.");
+      return;
+    }
+    if (!confirm(`Dispatch confirmation emails to ${unconfirmed.length} unconfirmed applicants?`)) return;
+    setBatchResending(true);
+    try {
+      const res = await adminFetch("/api/admin/applications/resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationIds: unconfirmed.map((a) => a.id),
+          sendToApplicant: true,
+          sendToAdmin: false,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Batch email dispatch failed");
+      }
+      showToast(`Processed confirmation emails for ${json.total || unconfirmed.length} applicants!`);
+      await loadAllApplications();
+    } catch (err: any) {
+      showToast(err.message || "Failed to process batch emails", "error");
+    } finally {
+      setBatchResending(false);
     }
   }
 
@@ -3437,7 +3519,8 @@ export default function EventsAdminPage() {
                             <th>Venture</th>
                             <th>Email</th>
                             <th>Date</th>
-                            <th>Status</th>
+                            <th>Email Status</th>
+                            <th>Review Status</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
@@ -3466,6 +3549,29 @@ export default function EventsAdminPage() {
                               <td>{app.email}</td>
                               <td>{new Date(app.submitted_at).toLocaleDateString()}</td>
                               <td onClick={(e) => e.stopPropagation()}>
+                                {app.email_status === "sent" ? (
+                                  <span style={{ display: "inline-block", background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                                    ✓ Sent
+                                  </span>
+                                ) : app.email_status === "failed" ? (
+                                  <span style={{ display: "inline-block", background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }} title={app.email_error || "Delivery failed"}>
+                                    ⚠ Failed
+                                  </span>
+                                ) : app.email_status === "simulated" ? (
+                                  <span style={{ display: "inline-block", background: "rgba(59,130,246,0.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                                    Simulation
+                                  </span>
+                                ) : app.email_status === "disabled" ? (
+                                  <span style={{ display: "inline-block", background: "rgba(156,163,175,0.15)", color: "#9ca3af", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem" }}>
+                                    Disabled
+                                  </span>
+                                ) : (
+                                  <span style={{ display: "inline-block", background: "rgba(245,158,11,0.15)", color: "#f59e0b", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                                    Unconfirmed
+                                  </span>
+                                )}
+                              </td>
+                              <td onClick={(e) => e.stopPropagation()}>
                                 <select
                                   className="cms-status-select"
                                   value={app.status}
@@ -3486,6 +3592,15 @@ export default function EventsAdminPage() {
                                     style={{ padding: "4px 8px", fontSize: "0.72rem" }}
                                   >
                                     Review
+                                  </button>
+                                  <button
+                                    onClick={() => resendApplicantEmail(app.id)}
+                                    disabled={resendingEmailId === app.id}
+                                    className="cms-btn cms-btn-secondary"
+                                    style={{ padding: "4px 8px", fontSize: "0.72rem" }}
+                                    title="Resend confirmation email to this applicant"
+                                  >
+                                    {resendingEmailId === app.id ? "..." : "✉ Resend"}
                                   </button>
                                   <button
                                     onClick={() => deleteApplication(app.id)}
@@ -3584,6 +3699,24 @@ export default function EventsAdminPage() {
                 >
                   📋 Generate Email List ({filteredPipeline.length})
                 </button>
+                {allApplications.some((a) => !a.email_status || a.email_status === "pending" || a.email_status === "failed") && (
+                  <button
+                    onClick={resendAllUnconfirmedEmails}
+                    disabled={batchResending}
+                    className="cms-btn"
+                    style={{
+                      backgroundColor: "#b45309",
+                      color: "#ffffff",
+                      borderColor: "#b45309",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                    title="Dispatch confirmation emails to applicants who did not receive them earlier"
+                  >
+                    {batchResending ? "Dispatching..." : `✉️ Resend Unconfirmed (${allApplications.filter((a) => !a.email_status || a.email_status === "pending" || a.email_status === "failed").length})`}
+                  </button>
+                )}
                 <button
                   onClick={() => exportApplicantsCSV(filteredPipeline, "abcn-pipeline-export")}
                   className="cms-btn cms-btn-secondary"
@@ -3666,6 +3799,7 @@ export default function EventsAdminPage() {
                     <th>Programme</th>
                     <th>Location</th>
                     <th>Submission Date</th>
+                    <th>Email Status</th>
                     <th>Review Status</th>
                     <th>Actions</th>
                   </tr>
@@ -3703,6 +3837,29 @@ export default function EventsAdminPage() {
                       </td>
                       <td>{new Date(app.submitted_at).toLocaleDateString()}</td>
                       <td onClick={(e) => e.stopPropagation()}>
+                        {app.email_status === "sent" ? (
+                          <span style={{ display: "inline-block", background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                            ✓ Sent
+                          </span>
+                        ) : app.email_status === "failed" ? (
+                          <span style={{ display: "inline-block", background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }} title={app.email_error || "Delivery failed"}>
+                            ⚠ Failed
+                          </span>
+                        ) : app.email_status === "simulated" ? (
+                          <span style={{ display: "inline-block", background: "rgba(59,130,246,0.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                            Simulation
+                          </span>
+                        ) : app.email_status === "disabled" ? (
+                          <span style={{ display: "inline-block", background: "rgba(156,163,175,0.15)", color: "#9ca3af", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem" }}>
+                            Disabled
+                          </span>
+                        ) : (
+                          <span style={{ display: "inline-block", background: "rgba(245,158,11,0.15)", color: "#f59e0b", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.72rem", fontWeight: 700 }}>
+                            Unconfirmed
+                          </span>
+                        )}
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <select
                           className="cms-status-select"
                           value={app.status}
@@ -3723,6 +3880,15 @@ export default function EventsAdminPage() {
                             style={{ padding: "5px 10px", fontSize: "0.75rem" }}
                           >
                             Inspect Profile
+                          </button>
+                          <button
+                            onClick={() => resendApplicantEmail(app.id)}
+                            disabled={resendingEmailId === app.id}
+                            className="cms-btn cms-btn-secondary"
+                            style={{ padding: "5px 9px", fontSize: "0.75rem" }}
+                            title="Resend confirmation email to this applicant"
+                          >
+                            {resendingEmailId === app.id ? "..." : "✉ Resend"}
                           </button>
                           <button
                             onClick={() => deleteApplication(app.id)}
@@ -4312,6 +4478,75 @@ export default function EventsAdminPage() {
                           {selectedApplicant.status}
                         </span>
                       </span>
+                    </div>
+
+                    <div className="cms-dossier-field-row">
+                      <span className="cms-dossier-field-key">Confirmation Email</span>
+                      <span className="cms-dossier-field-val">
+                        {selectedApplicant.email_status === "sent" ? (
+                          <span style={{ display: "inline-block", background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.74rem", fontWeight: 700 }}>
+                            ✓ Delivered {selectedApplicant.email_sent_at ? `(${new Date(selectedApplicant.email_sent_at).toLocaleTimeString()})` : ""}
+                          </span>
+                        ) : selectedApplicant.email_status === "failed" ? (
+                          <span style={{ display: "inline-block", background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.74rem", fontWeight: 700 }}>
+                            ⚠ Delivery Failed
+                          </span>
+                        ) : selectedApplicant.email_status === "simulated" ? (
+                          <span style={{ display: "inline-block", background: "rgba(59,130,246,0.15)", color: "#60a5fa", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.74rem", fontWeight: 700 }}>
+                            Simulation Mode
+                          </span>
+                        ) : selectedApplicant.email_status === "disabled" ? (
+                          <span style={{ display: "inline-block", background: "rgba(156,163,175,0.15)", color: "#9ca3af", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.74rem" }}>
+                            Deactivated
+                          </span>
+                        ) : (
+                          <span style={{ display: "inline-block", background: "rgba(245,158,11,0.15)", color: "#f59e0b", padding: "2px 8px", borderRadius: "9999px", fontSize: "0.74rem", fontWeight: 700 }}>
+                            Unconfirmed / Pending
+                          </span>
+                        )}
+                      </span>
+                    </div>
+
+                    {selectedApplicant.email_error && (
+                      <div className="cms-dossier-field-row" style={{ color: "#ef4444", fontSize: "0.75rem" }}>
+                        <span className="cms-dossier-field-key">Email Error</span>
+                        <span className="cms-dossier-field-val" style={{ color: "#ef4444", wordBreak: "break-all" }}>
+                          {selectedApplicant.email_error}
+                        </span>
+                      </div>
+                    )}
+
+                    {selectedApplicant.admin_alert_status && (
+                      <div className="cms-dossier-field-row">
+                        <span className="cms-dossier-field-key">Admin Alert</span>
+                        <span className="cms-dossier-field-val">
+                          <span style={{ fontSize: "0.74rem", color: selectedApplicant.admin_alert_status === "sent" ? "#10b981" : "#9ca3af" }}>
+                            {selectedApplicant.admin_alert_status === "sent" ? "✓ Notified Admin" : selectedApplicant.admin_alert_status}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--cms-border)", display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        disabled={resendingEmailId === selectedApplicant.id}
+                        onClick={() => resendApplicantEmail(selectedApplicant.id, true, false)}
+                        className="cms-btn cms-btn-primary"
+                        style={{ flex: 1, justifyContent: "center", fontSize: "0.82rem", padding: "8px 12px" }}
+                      >
+                        {resendingEmailId === selectedApplicant.id ? "Sending..." : "✉ Resend Applicant Email"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={resendingEmailId === selectedApplicant.id}
+                        onClick={() => resendApplicantEmail(selectedApplicant.id, false, true)}
+                        className="cms-btn cms-btn-secondary"
+                        style={{ fontSize: "0.82rem", padding: "8px 12px" }}
+                        title="Dispatch admin notification alert to internal inbox"
+                      >
+                        🔔 Alert Admin
+                      </button>
                     </div>
                   </div>
                 </div>

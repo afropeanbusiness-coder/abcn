@@ -488,6 +488,36 @@ export function buildAdminInviteHtml(data: { name: string; email: string; tempPa
   `;
 }
 
+/**
+ * Builds an explicit, executive alert email for the ABCN internal team
+ */
+export function buildAdminApplicationAlertHtml(
+  data: ApplicationEmailSummary,
+  eventDetails?: any
+): { html: string; subject: string } {
+  const adminSubject = `[New Application] ${data.eventTitle} — ${data.firstName} ${data.lastName}${data.companyName ? ` (${data.companyName})` : ""}`;
+  
+  const adminConfig: Partial<EmailTemplateConfig> = {
+    subject: adminSubject,
+    eyebrow: "ABCN Executive Intake Alert",
+    headline: "New Candidate Application Received",
+    body: `A new candidate application has been submitted for <strong>${escapeHtml(data.eventTitle)}</strong>. Review the applicant dossier summary below or open the admin portal for full evaluation and scoring.`,
+    show_reference_id: true,
+    show_summary_table: true,
+    next_steps_title: "Administrative Actions",
+    next_steps_items: [
+      "Access the Executive Admin Portal to review full dossier and pitch files.",
+      "Assign admissions status (Reviewing, Shortlisted, Accepted, or Waitlisted).",
+      "Direct founder inquiries can be directed to the applicant email: " + (data.email || ""),
+    ],
+    cta_text: "Review in Admin Portal",
+    cta_url: "https://www.afropeanbusiness.com/admin/events",
+    footer_note: "ABCN Internal Management System · Confidential Applicant Dossier",
+  };
+
+  return renderCustomEmailHtml(adminConfig, data, eventDetails);
+}
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")

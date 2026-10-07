@@ -15,12 +15,13 @@ import {
 import SlideshowManager from "@/components/SlideshowManager";
 import FormBuilder from "@/components/FormBuilder";
 import ApplicationWindowPanel from "@/components/ApplicationWindowPanel";
+import EmailManager from "@/components/EmailManager";
 import { parseForm, type ApplicationForm } from "@/lib/application-form";
 import { applicationState, berlinLocalToISO, describeState, isoToBerlinLocal } from "@/lib/application-status";
 
 type Mode = "checking" | "signed-out" | "needs-admin" | "admin";
-type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media" | "admins";
-type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "form" | "applicants";
+type MainTab = "events" | "pipeline" | "partners" | "slideshow" | "media" | "admins" | "emails";
+type EditorTab = "core" | "location" | "content" | "media" | "stages" | "partners" | "german" | "form" | "email" | "applicants";
 type Editable = EventRecord & { id?: string };
 type AdminTheme = "dark" | "light";
 
@@ -78,7 +79,8 @@ const SECTIONS: { id: EditorTab; label: string; shortLabel: string; num: string 
   { id: "partners", label: "Partners & Logo Manager", shortLabel: "Partners", num: "06" },
   { id: "german", label: "German Translation", shortLabel: "German (DE)", num: "07" },
   { id: "form", label: "Application Form", shortLabel: "Form", num: "08" },
-  { id: "applicants", label: "Event Applicants", shortLabel: "Applicants", num: "09" },
+  { id: "email", label: "Confirmation Email", shortLabel: "Email Template", num: "09" },
+  { id: "applicants", label: "Event Applicants", shortLabel: "Applicants", num: "10" },
 ];
 
 const blankEvent = (): Editable => ({
@@ -133,6 +135,7 @@ const blankEvent = (): Editable => ({
   application_cta: "Apply now",
   focus_areas: [],
   benefits: [],
+  email_template: null,
 });
 
 const lines = (value: string) =>
@@ -1722,6 +1725,15 @@ export default function EventsAdminPage() {
             <span className="cms-nav-badge">{adminUsers.length}</span>
           </button>
 
+          <button
+            type="button"
+            className={`cms-sidebar-item ${mainTab === "emails" ? "active" : ""}`}
+            onClick={() => setMainTab("emails")}
+          >
+            <span className="cms-nav-icon">✉️</span>
+            <span className="cms-nav-text">Email & Templates</span>
+          </button>
+
           {/* Contextual in-sidebar navigator when editing an event */}
           {mainTab === "events" && selectedId && (
             <div className="cms-sidebar-subnav">
@@ -1795,6 +1807,7 @@ export default function EventsAdminPage() {
                 {mainTab === "slideshow" && "Homepage Slideshow"}
                 {mainTab === "media" && "Media & Global Asset Manager"}
                 {mainTab === "admins" && "Administrator Directory & Team Access"}
+                {mainTab === "emails" && "Automated Emails & Template Studio"}
               </h1>
               <span>Executive Control Room · ABCN</span>
             </div>
@@ -3361,7 +3374,21 @@ export default function EventsAdminPage() {
                   />
                 )}
 
-                {/* TAB 9: APPLICANTS FOR THIS EVENT */}
+                {/* TAB 9: CONFIRMATION EMAIL FOR THIS EVENT */}
+                {editorTab === "email" && selectedId && (
+                  <EmailManager
+                    notify={showToast}
+                    eventMode={true}
+                    eventTitle={form.title || "Untitled Event"}
+                    eventSlug={form.slug || "event"}
+                    eventVenue={form.venue || "Frankfurt Marriott Hotel"}
+                    eventCity={form.city || "Frankfurt am Main"}
+                    initialEventTemplate={form.email_template}
+                    onSaveEventTemplate={(tmpl) => update("email_template", tmpl)}
+                  />
+                )}
+
+                {/* TAB 10: APPLICANTS FOR THIS EVENT */}
                 {editorTab === "applicants" && selectedId && (
                   <div className="cms-pipeline-wrap">
                     <div className="cms-pipeline-head">
@@ -4634,143 +4661,40 @@ export default function EventsAdminPage() {
             ========================================================================= */}
         {mainTab === "admins" && (
           <div className="cms-panel" style={{ padding: "1.5rem" }}>
-            {/* ---------------- Email Dispatch & Notification Controls ---------------- */}
+            {/* ---------------- Email Dispatch & Notification Studio Shortcut ---------------- */}
             <div
               style={{
                 marginBottom: "2rem",
-                padding: "1.5rem",
+                padding: "1.25rem 1.5rem",
                 background: "var(--cms-surface)",
                 border: "1px solid var(--cms-border)",
                 borderRadius: "var(--cms-radius-md)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "1rem",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  flexWrap: "wrap",
-                  gap: "1rem",
-                  marginBottom: "1.25rem",
-                  paddingBottom: "1rem",
-                  borderBottom: "1px solid var(--cms-border)",
-                }}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "1.2rem" }}>✉️</span>
+                  <strong style={{ fontSize: "1rem", color: "var(--cms-text-primary)" }}>
+                    Automated Emails & Template Studio
+                  </strong>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--cms-text-secondary)" }}>
+                  Configure delivery toggles, edit the 5 seeded email templates, and customize per-event confirmation emails.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMainTab("emails")}
+                className="cms-btn cms-btn-primary"
+                style={{ fontSize: "0.82rem", padding: "7px 16px" }}
               >
-                <div>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span>✉️</span> Application Email Dispatch Controls
-                  </h3>
-                  <p className="cms-hint" style={{ margin: 0 }}>
-                    Activate or deactivate automated emails triggered when an applicant submits an event form.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={saveEmailSettings}
-                  disabled={emailSettingsSaving || emailSettingsLoading}
-                  className="cms-btn cms-btn-primary"
-                  style={{ fontSize: "0.82rem", padding: "6px 16px" }}
-                >
-                  {emailSettingsSaving ? "Saving..." : "Save Email Preferences"}
-                </button>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
-                {/* 1. Applicant Email Toggle */}
-                <div
-                  style={{
-                    padding: "1.25rem",
-                    border: "1px solid var(--cms-border)",
-                    borderRadius: "var(--cms-radius-sm)",
-                    background: "rgba(0,0,0,0.08)",
-                  }}
-                >
-                  <div className="cms-switch-row" style={{ marginTop: 0 }}>
-                    <div className="cms-switch-info">
-                      <strong style={{ fontSize: "0.95rem" }}>Send Emails to Applicants</strong>
-                      <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
-                        Dispatches branded confirmation email to the applicant with a summary of their responses.
-                      </span>
-                    </div>
-                    <label className="cms-switch-control">
-                      <input
-                        type="checkbox"
-                        checked={emailSettings.send_to_applicant}
-                        onChange={(e) =>
-                          setEmailSettings((prev) => ({ ...prev, send_to_applicant: e.target.checked }))
-                        }
-                      />
-                      <span className="cms-slider" />
-                    </label>
-                  </div>
-                  <div style={{ marginTop: "12px" }}>
-                    <span className={`cms-pill ${emailSettings.send_to_applicant ? "published" : "draft"}`}>
-                      {emailSettings.send_to_applicant ? "✓ Active (Sending Enabled)" : "✕ Deactivated (Muted)"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Admin Alert Toggle */}
-                <div
-                  style={{
-                    padding: "1.25rem",
-                    border: "1px solid var(--cms-border)",
-                    borderRadius: "var(--cms-radius-sm)",
-                    background: "rgba(0,0,0,0.08)",
-                  }}
-                >
-                  <div className="cms-switch-row" style={{ marginTop: 0 }}>
-                    <div className="cms-switch-info">
-                      <strong style={{ fontSize: "0.95rem" }}>Send Notifications to Admin</strong>
-                      <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
-                        Dispatches an alert copy to the administrator when a new application is received.
-                      </span>
-                    </div>
-                    <label className="cms-switch-control">
-                      <input
-                        type="checkbox"
-                        checked={emailSettings.send_to_admin}
-                        onChange={(e) =>
-                          setEmailSettings((prev) => ({ ...prev, send_to_admin: e.target.checked }))
-                        }
-                      />
-                      <span className="cms-slider" />
-                    </label>
-                  </div>
-                  <div style={{ marginTop: "12px" }}>
-                    <span className={`cms-pill ${emailSettings.send_to_admin ? "published" : "draft"}`}>
-                      {emailSettings.send_to_admin ? "✓ Active (Alerts Enabled)" : "✕ Deactivated (Muted)"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Admin Recipient Address */}
-                <div
-                  style={{
-                    padding: "1.25rem",
-                    border: "1px solid var(--cms-border)",
-                    borderRadius: "var(--cms-radius-sm)",
-                    background: "rgba(0,0,0,0.08)",
-                    gridColumn: "1 / -1",
-                  }}
-                >
-                  <label style={{ display: "block", fontWeight: 700, fontSize: "0.85rem", marginBottom: "6px" }}>
-                    Admin Notification Recipient Address
-                  </label>
-                  <input
-                    type="email"
-                    value={emailSettings.admin_email}
-                    onChange={(e) =>
-                      setEmailSettings((prev) => ({ ...prev, admin_email: e.target.value }))
-                    }
-                    placeholder="afropeanbusiness@gmail.com"
-                    style={{ maxWidth: "420px" }}
-                  />
-                  <span className="cms-hint" style={{ display: "block", marginTop: "4px" }}>
-                    The target inbox that receives notifications or BCC copies of incoming founder submissions.
-                  </span>
-                </div>
-              </div>
+                Open Email Studio →
+              </button>
             </div>
             <div
               style={{
@@ -4885,6 +4809,15 @@ export default function EventsAdminPage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            VIEW 6: AUTOMATED EMAIL DISPATCH & TEMPLATE STUDIO
+            ========================================================================= */}
+        {mainTab === "emails" && (
+          <div className="cms-panel" style={{ padding: "1.5rem" }}>
+            <EmailManager notify={showToast} />
           </div>
         )}
       </div>

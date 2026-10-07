@@ -39,13 +39,15 @@ export async function POST(req: NextRequest) {
     let eventTitle = "ABCN Flagship Programme";
     let storedForm: unknown = null;
     let accessLinkId: string | undefined;
+    let eventDetails: any = null;
     {
-      const cols = `id, title, application_form, application_open, application_override, application_opens_at, application_closes_at,
+      const cols = `id, title, slug, venue, city, country, date_label, email_template, application_form, application_open, application_override, application_opens_at, application_closes_at,
                     application_max, (SELECT COUNT(*) FROM event_applications a WHERE a.event_id = events.id) AS n`;
       const rows = resolvedEventId
         ? await query<any>(`SELECT ${cols} FROM events WHERE id = $1 LIMIT 1`, [resolvedEventId])
         : await query<any>(`SELECT ${cols} FROM events WHERE slug = $1 LIMIT 1`, [eventSlug || "fiali-frankfurt-2026"]);
       if (rows.length > 0) {
+        eventDetails = rows[0];
         resolvedEventId = rows[0].id;
         eventTitle = rows[0].title || eventTitle;
         storedForm = rows[0].application_form;
@@ -178,32 +180,38 @@ export async function POST(req: NextRequest) {
       const applicantEmail = s("email").toLowerCase();
 
       if (emailSettings.send_to_applicant || emailSettings.send_to_admin) {
-        const confirmationHtml = buildApplicationConfirmationHtml({
-          applicantId: result[0].id,
-          eventTitle,
-          firstName: s("firstName"),
-          lastName: s("lastName"),
-          email: applicantEmail,
-          phone: s("phone"),
-          city: s("location") || body.city || "Frankfurt am Main",
-          country: body.country || "DE",
-          companyName: s("companyName"),
-          companyWebsite: s("companyUrl"),
-          roleTitle: s("jobTitle"),
-          businessModel: s("sector"),
-          ventureStage: s("stage"),
-          aiInterest: s("aiFocus"),
-          motivation: s("motivation"),
-          goals: s("grantInterest"),
-          customAnswers: Object.keys(custom).length ? custom : undefined,
-          submittedAt: result[0].submitted_at || new Date().toISOString(),
-        });
+        const { html: confirmationHtml, subject: emailSubject } = buildApplicationConfirmationHtml(
+          {
+            applicantId: result[0].id,
+            eventTitle,
+            firstName: s("firstName"),
+            lastName: s("lastName"),
+            email: applicantEmail,
+            phone: s("phone"),
+            city: s("location") || body.city || "Frankfurt am Main",
+            country: body.country || "DE",
+            companyName: s("companyName"),
+            companyWebsite: s("companyUrl"),
+            roleTitle: s("jobTitle"),
+            businessModel: s("sector"),
+            ventureStage: s("stage"),
+            aiInterest: s("aiFocus"),
+            motivation: s("motivation"),
+            goals: s("grantInterest"),
+            customAnswers: Object.keys(custom).length ? custom : undefined,
+            submittedAt: result[0].submitted_at || new Date().toISOString(),
+          },
+          eventDetails?.email_template,
+          eventDetails
+        );
+
+        const finalSubject = emailSubject || `Application Received: ${eventTitle} — ABCN`;
 
         if (emailSettings.send_to_applicant) {
           // Send to applicant, with BCC to admin if admin alerts are enabled
           sendEmail({
             to: applicantEmail,
-            subject: `Application Received: ${eventTitle} — ABCN`,
+            subject: finalSubject,
             html: confirmationHtml,
             bcc: emailSettings.send_to_admin ? emailSettings.admin_email : undefined,
           }).catch((emailErr) => {
@@ -213,7 +221,7 @@ export async function POST(req: NextRequest) {
           // Applicant emails are deactivated; send alert only to admin
           sendEmail({
             to: emailSettings.admin_email,
-            subject: `[Admin Alert] Application Received: ${eventTitle} — ABCN`,
+            subject: `[Admin Alert] ${finalSubject}`,
             html: confirmationHtml,
           }).catch((emailErr) => {
             console.error("[Admin Alert Email Failed]:", emailErr);

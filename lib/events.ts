@@ -85,6 +85,8 @@ export type EventRecord = {
   application_cta?: string | null;
   focus_areas: EventContentCard[];
   benefits: EventContentCard[];
+  /** Custom confirmation email template config; null/absent = default template */
+  email_template?: any;
 
   /**
    * German translations. Every field is optional: normaliseEvent falls back to

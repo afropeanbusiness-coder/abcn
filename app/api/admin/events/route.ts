@@ -63,6 +63,7 @@ const EVENT_COLUMNS = [
   "focus_areas_de",
   "benefits_de",
   "application_form",
+  "email_template",
 ] as const;
 
 const JSON_COLUMNS = new Set([
@@ -81,6 +82,7 @@ const JSON_COLUMNS = new Set([
   "focus_areas_de",
   "benefits_de",
   "application_form",
+  "email_template",
 ]);
 
 function sanitizePayload(body: any): Record<string, any> {

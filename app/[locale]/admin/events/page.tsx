@@ -1366,7 +1366,7 @@ export default function EventsAdminPage() {
       { name: "SoftXcloud GmbH", logo: "/assets/partners/softxcloud.png", website: "https://softxcloud.net" },
       { name: "Mountain Hub", logo: "/assets/partners/mountain-hub.png", website: "https://mountainhub.org" },
       { name: "Kompass Frankfurt", logo: "/assets/fiali/logos/kompass-frankfurt.png", website: "https://kompassfrankfurt.de" },
-      { name: "DIVOC Rising", logo: "/assets/fiali/logos/divoc-rising.png", website: "https://divocrising.com" },
+      { name: "BIWOC", logo: "/assets/fiali/logos/biwoc-rising.png", website: "https://biwoc-rising.org/" },
       { name: "Black Women in Tech DACH", logo: "/assets/fiali/logos/black-women-in-tech-dach.png", website: "https://bwt-dach.org" },
     ];
     update("partners", defaults);

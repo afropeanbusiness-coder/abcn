@@ -211,11 +211,11 @@ export const FIALI_FALLBACK: EventRecord = {
       tagline: "Das Startup-Matchmaking-Projekt der Stadt Frankfurt",
     },
     {
-      name: "DIWOC Rising",
-      logo: "/assets/fiali/logos/divoc-rising.png",
-      website: "https://diwoc-rising.com",
+      name: "BIWOC",
+      logo: "/assets/fiali/logos/biwoc-rising.png",
+      website: "https://biwoc-rising.org/",
       tier: "financial_supporter",
-      tagline: "Diversity in Women of Color Initiative",
+      tagline: "Intersectional Community & Co-Working Hub",
     },
     {
       name: "Black Women in Tech DACH",

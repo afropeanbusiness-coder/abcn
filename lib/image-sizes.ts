@@ -60,6 +60,7 @@ export const IMAGE_SIZES: Record<string, ImageSize> = {
   "/assets/abcn/share-fiali.jpg": { width: 1200, height: 630 },
   "/assets/fiali/logos/abcn.png": { width: 288, height: 113 },
   "/assets/fiali/logos/black-women-in-tech-dach.png": { width: 188, height: 209 },
+  "/assets/fiali/logos/biwoc-rising.png": { width: 356, height: 216 },
   "/assets/fiali/logos/divoc-rising.png": { width: 356, height: 216 },
   "/assets/fiali/logos/flourish-where-planted.png": { width: 1024, height: 673 },
   "/assets/fiali/logos/flow-moms.png": { width: 1024, height: 673 },

@@ -25,7 +25,7 @@ export const DEFAULT_FIALI_PARTNERS: EventPartner[] = [
     tier: "financial_supporter",
   },
   {
-    name: "BIWOC",
+    name: "BIWOC Rising",
     logo: "/assets/fiali/logos/biwoc-rising.png",
     website: "https://biwoc-rising.org/",
     tier: "financial_supporter",

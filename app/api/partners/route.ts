@@ -24,7 +24,7 @@ export async function GET() {
       { id: "p1", name: "Wirtschaftsförderung Frankfurt", logo_url: "/assets/fiali/logos/wirtschaftsfoerderung-frankfurt.png", website_url: "https://frankfurt-business.net" },
       { id: "p2", name: "Kompass Frankfurt", logo_url: "/assets/fiali/logos/kompass-frankfurt.png", website_url: "https://kompassfrankfurt.de" },
       { id: "p3", name: "Frankfurt Forward", logo_url: "/assets/fiali/logos/frankfurt-forward.png", website_url: "https://frankfurt-forward.de" },
-      { id: "p4", name: "BIWOC", logo_url: "/assets/fiali/logos/biwoc-rising.png", website_url: "https://biwoc-rising.org/" },
+      { id: "p4", name: "BIWOC Rising", logo_url: "/assets/fiali/logos/biwoc-rising.png", website_url: "https://biwoc-rising.org/" },
       { id: "p5", name: "Black Women in Tech DACH", logo_url: "/assets/fiali/logos/black-women-in-tech-dach.png", website_url: "https://bwit-dach.org" },
       { id: "p6", name: "FLOW MOMS · Flourish Where You Are Planted", logo_url: "/assets/fiali/logos/flourish-where-planted.png", website_url: "" },
       { id: "p7", name: "ABCN", logo_url: "/assets/fiali/logos/abcn.png", website_url: "https://afropeanbusiness.com" },

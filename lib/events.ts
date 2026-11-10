@@ -211,7 +211,7 @@ export const FIALI_FALLBACK: EventRecord = {
       tagline: "Das Startup-Matchmaking-Projekt der Stadt Frankfurt",
     },
     {
-      name: "BIWOC",
+      name: "BIWOC Rising",
       logo: "/assets/fiali/logos/biwoc-rising.png",
       website: "https://biwoc-rising.org/",
       tier: "financial_supporter",
